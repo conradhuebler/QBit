@@ -40,7 +40,10 @@ public:
     inline UpdateThread() { setAutoDelete(false); }
     inline void run() override
     {
-        if(m_clear)
+        int crude = 0;
+        int tight = 0;
+        quint64 start = QDateTime::currentMSecsSinceEpoch();
+//         if(m_clear)
         {
             m_series->clear();
             m_clear = false;
@@ -49,19 +52,28 @@ public:
         int count = 0;
         for(int i = 0; i < m_spectrum->size(); i += m_tick)  
         {
-            if(count < m_series->count())
-                m_series->replace( count, QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
-            else
+//             if(count < m_series->count())
+//                 m_series->replace( count, QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
+//             else
+            if(m_spectrum->Y(i)*m_scaling > m_spectrum->StdDev() || crude == 48 || tight == 24 || i == 0)
+            {
                 m_series->append(QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
-            
+                if(crude == 48)
+                    crude = 0;
+                if(tight == 24)
+                    tight = 0;
+            }
             count++;
+            tight++;
+            crude++;
         }
+        qDebug() << "took" << (QDateTime::currentMSecsSinceEpoch() -start) << " msec.";
     }
     inline void setNumber(int number) { m_number = number; }
     inline void setSpectrum(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
     inline void setSeries(QPointer<QtCharts::QLineSeries> series) { m_series = series; }
     inline void setScaling(double scaling) { m_scaling = scaling; }
-    inline void setTick(int tick) { m_tick = tick; m_clear = true;}
+    inline void setTick(int tick) { m_tick = 6; m_clear = true;}
     
 private:
     QPointer<QtCharts::QLineSeries> m_series;
@@ -71,6 +83,7 @@ private:
     int m_number, m_count;
     bool m_clear = false;
 };
+
 
 class FitThread : public QRunnable
 {
@@ -105,13 +118,13 @@ private:
     QSpinBox *m_functions;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
-    QVector<QPointer<QtCharts::QLineSeries > >m_spectrum, m_peaks, m_fit; 
+    QVector<QPointer<QtCharts::QLineSeries > >m_raw_spec, m_spectrum, m_peaks, m_fit; 
     QStringList m_filenames;
     QVector<PeakPick::Peak > m_peak_list;
     QVector<NMRSpec *> m_spectra;
     QVector<PeakPick::Peak> m_maxpeak;
     QVector<double > m_threshold;
-    QVector< UpdateThread * > m_threads;
+    QVector< UpdateThread * > m_data_threads, m_raw_threads;
     QVector< FitThread *> m_fit_threads;
     std::vector<PeakPick::Peak> peaks;
     QPointer<QtCharts::QLineSeries > m_chloroform;
