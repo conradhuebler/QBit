@@ -95,7 +95,7 @@ void QBit::LoadSpectrum(int index)
 
 void QBit::Finished()
 {
-    m_widget->UpdateSeries(1);
+    m_widget->UpdateSeries(12);
     m_widget->ResetZoomLevel();
 }
 

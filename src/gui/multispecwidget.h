@@ -40,16 +40,29 @@ public:
     inline UpdateThread() { setAutoDelete(false); }
     inline void run() override
     {
-        series->clear(); 
-        for(int i = 0; i < spectrum->size(); i += tick)  
-            series->append( spectrum->X(i), spectrum->Y(i) + number);
-        
+        int count = 0;
+        for(int i = 0; i < m_spectrum->size(); i += m_tick)  
+        {
+            if(count < m_series->count())
+                m_series->replace( count, QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
+            else
+                m_series->append(QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
+            
+            count++;
+        }
     }
+    inline void setNumber(int number) { m_number = number; }
+    inline void setSpectrum(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
+    inline void setSeries(QPointer<QtCharts::QLineSeries> series) { m_series = series; }
+    inline void setScaling(double scaling) { m_scaling = scaling; }
+    inline void setTick(int tick) { m_tick = tick; }
     
-    QPointer<QtCharts::QLineSeries> series;
-    const PeakPick::spectrum *spectrum;
-    int tick = 5;
-    int number;
+private:
+    QPointer<QtCharts::QLineSeries> m_series;
+    const PeakPick::spectrum *m_spectrum;
+    int m_tick = 12;
+    double m_scaling = 1;
+    int m_number, m_count;
 };
 
 class FitThread : public QRunnable

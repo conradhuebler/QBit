@@ -229,7 +229,7 @@ public:
         QPointer<QtCharts::QValueAxis> y_axis = qobject_cast<QtCharts::QValueAxis *>( m_chart->axisY());
         if(y_axis)
         {
-            y_axis->setMin(0);
+            y_axis->setMin(-0.2);
             y_axis->setTickCount(0);
             y_axis->setMax(ymax);
         }
