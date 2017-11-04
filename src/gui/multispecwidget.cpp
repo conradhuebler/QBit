@@ -134,7 +134,6 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     
     m_spectrum << spec;
     
-//     m_filenames << name;
     m_chartview->addSeries(spec, true);
     m_chartview->setXAxis("chemical shift [ppm]");
     m_chartview->setYAxis("Intensity");
@@ -196,7 +195,7 @@ void MultiSpecWidget::Scale(double factor)
     m_scale_jobs--;
     
     if(m_scale_jobs)
-        UpdateSeries(m_files*12);
+        UpdateSeries(m_spectra.size()*12);
     else
         UpdateSeries(12);
     
@@ -238,22 +237,6 @@ void MultiSpecWidget::PickPeaks()
     }
 }
 
-void MultiSpecWidget::DeNoise()
-{
-    //      for(int i = 0; i < m_spectra.size(); ++i)
-    //         PeakPick::RemoveNoise(m_spectra[i], m_threshold[i]);
-    //      UpdateSeries(5);
-}
-
-void MultiSpecWidget::Reload()
-{
-//     qDeleteAll(m_spectra);
-//     m_spectra.clear();
-//     for(int i = 0; i < m_spectra.size(); ++i)
-//         m_spectra << new PeakPick::spectrum(m_original[i]);
-//     UpdateSeries(12);
-//     m_chartview->formatAxis();
-}
 
 void MultiSpecWidget::Deconvulate()
 {

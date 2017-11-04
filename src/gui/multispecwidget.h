@@ -40,6 +40,12 @@ public:
     inline UpdateThread() { setAutoDelete(false); }
     inline void run() override
     {
+        if(m_clear)
+        {
+            m_series->clear();
+            m_clear = false;
+        }
+        
         int count = 0;
         for(int i = 0; i < m_spectrum->size(); i += m_tick)  
         {
@@ -55,7 +61,7 @@ public:
     inline void setSpectrum(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
     inline void setSeries(QPointer<QtCharts::QLineSeries> series) { m_series = series; }
     inline void setScaling(double scaling) { m_scaling = scaling; }
-    inline void setTick(int tick) { m_tick = tick; }
+    inline void setTick(int tick) { m_tick = tick; m_clear = true;}
     
 private:
     QPointer<QtCharts::QLineSeries> m_series;
@@ -63,6 +69,7 @@ private:
     int m_tick = 12;
     double m_scaling = 1;
     int m_number, m_count;
+    bool m_clear = false;
 };
 
 class FitThread : public QRunnable
@@ -88,7 +95,6 @@ public:
     
     
 public slots:
-//     void AddSpectrum(const PeakPick::spectrum &spectrum, const PeakPick::spectrum &original, const QString &name = "raw data");
     void addSpectrum(NMRSpec *spectrum);
     void UpdateSeries(int tick);
     void ResetZoomLevel(); 
@@ -99,12 +105,10 @@ private:
     QSpinBox *m_functions;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
-    QVector<QPointer<QtCharts::QLineSeries > >m_spectrum, m_peaks, m_fit; //, *m_std, *m_sthdthresh;
+    QVector<QPointer<QtCharts::QLineSeries > >m_spectrum, m_peaks, m_fit; 
     QStringList m_filenames;
     QVector<PeakPick::Peak > m_peak_list;
     QVector<NMRSpec *> m_spectra;
-//     QVector<PeakPick::spectrum> m_original;
-//     QVector<PeakPick::spectrum *> m_work;
     QVector<PeakPick::Peak> m_maxpeak;
     QVector<double > m_threshold;
     QVector< UpdateThread * > m_threads;
@@ -119,8 +123,6 @@ private:
 private slots:
     void Scale(double factor);
     void PickPeaks();
-    void DeNoise();
-    void Reload();
     void Deconvulate();
     void PrepareFit();
     void FitSingle();

@@ -156,6 +156,7 @@ void SpectrumLoader::run()
     PeakPick::Normalise(&original,0,2);
     PeakPick::Normalise(&spectrum, 0, 2);
     PeakPick::SmoothFunction(&spectrum, 12);
+    PeakPick::SmoothFunction(&spectrum, 12);
 }
 
 
