@@ -117,6 +117,11 @@ public:
             else 
                 return m_y(i); 
         }
+        
+        
+    inline double XMin() const { return m_min; }
+    inline double XMax() const { return m_max; }
+    
     inline double PosOfPoint(double X) const { return (X-m_min)*m_y.size()/(m_max-m_min)/2; }
         
     inline void setY(int i, double value) { m_y(i) = value; }

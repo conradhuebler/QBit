@@ -155,7 +155,7 @@ void SpectrumLoader::run()
     spectrum = PeakPick::spectrum(original); //.getRangedSpectrum(-7.0,0.0), -7.0, 0.0);
     PeakPick::Normalise(&original,0,2);
     PeakPick::Normalise(&spectrum, 0, 2);
-//     PeakPick::SmoothFunction(&spectrum, 12);
+    PeakPick::SmoothFunction(&spectrum, 12);
 //     PeakPick::SmoothFunction(&spectrum, 12);
 }
 

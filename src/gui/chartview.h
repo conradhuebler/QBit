@@ -235,6 +235,17 @@ public:
         }
     }
     
+    inline void setX(qreal xmin, qreal xmax) 
+    {
+        QPointer<QtCharts::QValueAxis> x_axis = qobject_cast<QtCharts::QValueAxis *>( m_chart->axisX());
+        if(x_axis)
+        {
+            x_axis->setMin(xmin);
+//             x_axis->setTickCount(0);
+            x_axis->setMax(xmax);
+        }
+    }
+    
     inline void removeSeries(QtCharts::QAbstractSeries *series) { m_chart->removeSeries(series); }
     inline QList<QtCharts::QAbstractSeries *> series() const { return m_chart->series(); }
     

@@ -110,6 +110,7 @@ MultiSpecWidget::MultiSpecWidget(int files, QWidget *parent ) : QWidget(parent),
     m_select = new SelectGuess;
     
     connect(m_chartview, SIGNAL(ZoomChanged()), this, SLOT(UpdateRange()));
+    connect(m_chartview, SIGNAL(ZoomChanged()), this, SLOT(ResetZoomLevel()));
     connect(m_chartview, SIGNAL(scaleDown()), this, SLOT(scaleDown()));
     connect(m_chartview, SIGNAL(scaleUp()), this, SLOT(scaleUp()));
     connect(m_chartview, SIGNAL(AddRect(const QPointF &, const QPointF &)), this, SLOT(AddRect(const QPointF &, const QPointF &)));
@@ -122,12 +123,14 @@ MultiSpecWidget::MultiSpecWidget(int files, QWidget *parent ) : QWidget(parent),
 MultiSpecWidget::~MultiSpecWidget()
 {
     qDeleteAll(m_data_threads);
-    qDeleteAll(m_raw_threads);
 }
 
 void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
 {
     m_spectra << spectrum;
+    
+    m_xmin = qMin(m_xmin, spectrum->Data()->XMin());
+    m_xmax = qMax(m_xmax, spectrum->Data()->XMax());
     
     QPointer<QtCharts::QLineSeries > spec = new QtCharts::QLineSeries;
     spec->setName(spectrum->Name());
@@ -142,7 +145,7 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     m_chartview->setYAxis("Intensity");
     
     UpdateThread *thread = new UpdateThread;
-    thread->setSpectrum( m_spectra[m_spectra.size() - 1]->Data() );
+    thread->setSpectrum( m_spectra[m_spectra.size() - 1]->Data() , m_spectra[m_spectra.size() - 1]->Raw());
     thread->setNumber( m_spectrum.size() - 1 );
     thread->setSeries(  spec );
     m_data_threads << thread;
@@ -159,11 +162,11 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     
     spec->setVisible(false);
     
-    thread = new UpdateThread;
-    thread->setSpectrum( m_spectra[m_spectra.size() - 1]->Data() );
-    thread->setNumber( m_spectrum.size() - 1 );
-    thread->setSeries(  spec );
-    m_raw_threads << thread;
+//     thread = new UpdateThread;
+//     thread->setSpectrum( m_spectra[m_spectra.size() - 1]->Data(), m_spectra[m_spectra.size() - 1]->Raw() );
+//     thread->setNumber( m_spectrum.size() - 1 );
+//     thread->setSeries(  spec );
+//     m_raw_threads << thread;
     
     FitThread *fit = new FitThread;
     fit->spectrum = m_spectra[m_spectra.size() - 1]->Data();
@@ -174,16 +177,18 @@ void MultiSpecWidget::ResetZoomLevel()
 {
     m_chartview->formatAxis();
     m_chartview->setYMax(m_spectrum.size() + 2);
+    m_chartview->setX(m_xmin, m_xmax);
+    UpdateSeries(24);
 }
 
 void MultiSpecWidget::UpdateSeries(int tick)
 {
-    quint64 start = QDateTime::currentMSecsSinceEpoch();
     m_threshold.clear();
     for(int j = 0; j < m_spectrum.size(); ++j)
     {
         m_data_threads[j]->setScaling(m_scale);
         m_data_threads[j]->setTick( tick );
+        m_data_threads[j]->setRange(m_chartview->XMin(), m_chartview->XMax());
         QThreadPool::globalInstance()->start(m_data_threads[j]);
         m_threshold << m_spectra[j]->Data()->Threshold();
     }
@@ -194,7 +199,6 @@ void MultiSpecWidget::UpdateSeries(int tick)
         m_first_zoom = true;
     
     m_chartview->UpdateView(-1, m_spectrum.size() + 2);
-    qDebug() << "whole update took" << QDateTime::currentMSecsSinceEpoch()-start << " msecs";
 }
 
 void MultiSpecWidget::Scale(double factor)
@@ -203,9 +207,9 @@ void MultiSpecWidget::Scale(double factor)
     m_scale_jobs--;
     
     if(m_scale_jobs)
-        UpdateSeries(m_spectra.size()*1);
+        UpdateSeries(m_spectra.size()*6);
     else
-        UpdateSeries(1);
+        UpdateSeries(6);
     
 }
 
