@@ -39,17 +39,21 @@ public:
     
     QString FullName() const { return m_filename; }
     QString BaseName() const { return m_basename; }
-    
+    bool Loaded() const { return m_load; }
     
     
     NMRSpec Spectrum() const { return NMRSpec(m_basename, spectrum, original); }
     
 private:
-    void loadAsciiFile();
-    void loadBrukerFile();
+    bool loadAsciiFile();
+    bool loadNMRFile();
+    bool loadFidFile();
+    Vector BinFile2Vector(const QString &filename);
     
     QString m_filename, m_basename, m_path;
     PeakPick::spectrum spectrum, original;
+    bool m_load = false;
+
 };
 
 

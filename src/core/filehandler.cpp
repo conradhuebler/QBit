@@ -43,7 +43,7 @@ SpectrumLoader::SpectrumLoader(const QString &str) : m_filename(str)
 }
 
 
-void SpectrumLoader::loadAsciiFile()
+bool SpectrumLoader::loadAsciiFile()
 {
     Vector y;
     
@@ -51,7 +51,7 @@ void SpectrumLoader::loadAsciiFile()
     if(!file.open(QIODevice::ReadOnly))
     {
         qDebug() << file.errorString();
-//         return; //FIXME Hää
+        return false; 
     }
     
     QStringList filecontent = QString(file.readAll()).split("\n");
@@ -84,79 +84,102 @@ void SpectrumLoader::loadAsciiFile()
     
     y = Vector::Map(&entries[0], number); 
     original = PeakPick::spectrum(y,-1*min,max); 
+    return true;
 }
 
-void SpectrumLoader::loadBrukerFile()
+bool SpectrumLoader::loadNMRFile()
+{
+
+    Vector y = BinFile2Vector(m_filename);;
+    if(y.size() == 0)
+        return false;
+    const QString high_field = "##$ABSF1=";
+    const QString low_field = "##$ABSF2=";
+    
+    QFile peakrng( m_path + QDir::separator() + "procs");
+    
+    if(!peakrng.open(QIODevice::ReadOnly))
+    {
+        qDebug() << peakrng.errorString();
+        return false; 
+    }
+    double min = 0;
+    double max = 0;
+    QString range = peakrng.readAll();
+    QStringList lines = range.split("\n");
+    QString prev;
+    for(QString &str : lines)
+    {
+        if(str.contains(high_field))
+            min = str.remove((high_field)).toDouble();
+        if(str.contains(low_field))
+            max =str.remove(low_field).toDouble();
+    }
+    
+    original = PeakPick::spectrum(y,-1*min,-1*max); 
+    
+    QStringList path_list  = m_path.split(QDir::separator());
+    
+    m_basename = path_list[path_list.size() - 4];
+    return true;
+    
+}
+
+bool SpectrumLoader::loadFidFile()
+{
+    Vector y = BinFile2Vector(m_filename);
+    if(y.size() == 0)
+        return false;
+    original = PeakPick::spectrum(y,0,y.size()); 
+    
+    QStringList path_list  = m_path.split(QDir::separator());
+    
+    m_basename = path_list[path_list.size() - 2];
+    return true;
+}
+
+Vector SpectrumLoader::BinFile2Vector(const QString& filename)
 {
     int  intNum   = 0;
     std::vector<double> entries;
-    
-    const QString high_field = "##$ABSF1=";
-    const QString low_field = "##$ABSF2=";
     Vector y;
-    
-//     QFile file(m_filename);
-//     if(!file.open(QIODevice::ReadOnly))
-//     {
-//         qDebug() << file.errorString();
-// //         return; //FIXME Hää
-//     }
-    
-     std::ifstream file_i (m_filename.toStdString(), std::ios::binary);
-     if(file_i.is_open()){
- int number = 0;
-   
+    std::ifstream file_i (filename.toStdString(), std::ios::binary);
+    if(file_i.is_open())
+    {
+        int number = 0;
         while(true)
         {
             file_i.read(reinterpret_cast<char *>(&intNum),sizeof(intNum));   
- 
+            
             if(file_i.eof()) {
                 break;
             }
             entries.push_back(intNum);
             number++;
         }
-            y = Vector::Map(&entries[0], number);
-     }else
-         return;
-     
-     QFile peakrng( m_path + QDir::separator() + "procs");
-     
-     peakrng.open(QIODevice::ReadOnly);
-     double min = 0;
-     double max = 0;
-     QString range = peakrng.readAll();
-     QStringList lines = range.split("\n");
-     QString prev;
-     for(QString &str : lines)
-     {
-         if(str.contains(high_field))
-             min = str.remove((high_field)).toDouble();
-         if(str.contains(low_field))
-             max =str.remove(low_field).toDouble();
-     }
-     
-    original = PeakPick::spectrum(y,-1*min,-1*max); 
-    
-    QStringList path_list  = m_path.split(QDir::separator());
-
-    m_basename = path_list[path_list.size() - 4];
-    
-    file_i.close ();
+        y = Vector::Map(&entries[0], number);
+        file_i.close ();
+    }
+    return y;
 }
 
 
 void SpectrumLoader::run()
 {
     if(m_filename.contains("txt"))
-        loadAsciiFile();
+        m_load = loadAsciiFile();
     else if(m_filename.contains("1r"))
-        loadBrukerFile();
-    spectrum = PeakPick::spectrum(original); //.getRangedSpectrum(-7.0,0.0), -7.0, 0.0);
-    PeakPick::Normalise(&original,0,2);
-    PeakPick::Normalise(&spectrum, 0, 2);
-    PeakPick::SmoothFunction(&spectrum, 12);
-//     PeakPick::SmoothFunction(&spectrum, 12);
+        m_load = loadNMRFile();
+    else if(m_filename.contains("fid"))
+        m_load = loadFidFile();
+    
+    if(m_load)
+    {
+        spectrum = PeakPick::spectrum(original);
+        PeakPick::Normalise(&original,0,2);
+        PeakPick::Normalise(&spectrum, 0, 2);
+        PeakPick::SmoothFunction(&spectrum, 12);
+    }
 }
 
 
@@ -177,15 +200,11 @@ fileHandler::~fileHandler()
 void fileHandler::addFile(const QString& filename)
 {
     SpectrumLoader * loader = new SpectrumLoader(filename);;
-
-   
-        QThreadPool::globalInstance()->start(loader);  
-    
-    
-    QThreadPool::globalInstance()->waitForDone();
-
-        m_spectra.append( new NMRSpec(loader->Spectrum()) );
-        emit SpectrumAdded(m_spectra.size() - 1);
+    loader->run();
+    if(loader->Loaded())
+        return;
+    m_spectra.append( new NMRSpec(loader->Spectrum()) );
+    emit SpectrumAdded(m_spectra.size() - 1);
     
     delete loader;
     emit Finished();
@@ -204,6 +223,8 @@ void fileHandler::addFiles(const QStringList& filenames)
     QThreadPool::globalInstance()->waitForDone();
     for(int i = 0; i < loader.size(); ++i)
     {
+        if(!loader[i]->Loaded())
+            continue;
         m_spectra.append( new NMRSpec(loader[i]->Spectrum()) );
         emit SpectrumAdded(m_spectra.size() - 1);
     }
