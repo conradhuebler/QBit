@@ -120,7 +120,7 @@ void SpectrumLoader::loadBrukerFile()
      }else
          return;
      
-     QFile peakrng( m_path + "/procs");
+     QFile peakrng( m_path + QDir::separator() + "procs");
      
      peakrng.open(QIODevice::ReadOnly);
      double min = 0;
@@ -176,8 +176,19 @@ fileHandler::~fileHandler()
 
 void fileHandler::addFile(const QString& filename)
 {
+    SpectrumLoader * loader = new SpectrumLoader(filename);;
+
+   
+        QThreadPool::globalInstance()->start(loader);  
     
     
+    QThreadPool::globalInstance()->waitForDone();
+
+        m_spectra.append( new NMRSpec(loader->Spectrum()) );
+        emit SpectrumAdded(m_spectra.size() - 1);
+    
+    delete loader;
+    emit Finished();
 }
 
 void fileHandler::addFiles(const QStringList& filenames)

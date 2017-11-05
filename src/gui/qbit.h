@@ -35,8 +35,10 @@ public:
     QBit();
     ~QBit();
     
+    void LoadFile(const QString &file);
+    void LoadFiles(const QStringList &files);
+    
 private:
-    QMdiArea *mdiArea;
     QPointer<fileHandler > m_files;
     QPointer<MultiSpecWidget > m_widget; 
     

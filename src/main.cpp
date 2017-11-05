@@ -21,6 +21,7 @@
 
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QCommandLineOption>
+#include <QtCore/QDir>
 
 #include <QtWidgets/QApplication>
 
@@ -59,8 +60,8 @@ int main(int argc, char** argv)
     
     QApplication app(argc, argv);
     
-    app.setApplicationName("PeakPicker GUI");
-    app.setApplicationDisplayName("PeakPicker GUI");
+    app.setApplicationName("QBit");
+    app.setApplicationDisplayName("QBit");
     app.setOrganizationName("Conrad Huebler");
     
 //     app.setApplicationVersion(version);
@@ -72,14 +73,18 @@ int main(int argc, char** argv)
     parser.addPositionalArgument("input file", QCoreApplication::translate("main", "File to open."));
     parser.process(app);
 
-    const QStringList args = parser.positionalArguments();
-
+    QStringList args = parser.positionalArguments();
+    for(int i = 0; i < args.size(); ++i)
+    {
+        args[i] = QDir::currentPath() + QDir::separator() + args[i];
+    }
 #ifdef _DEBUG
         qDebug() << "Debug output enabled, good fun!";
 #endif
-    
 
     QBit qbit;
     qbit.show();
+    qbit.LoadFiles(args);
+    
     return app.exec();
 }

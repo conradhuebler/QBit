@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <QtCore/QDir>
-
 #include <QtCore/QVector>
 
 #include <QtWidgets/QAction>
@@ -27,8 +26,6 @@
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QLabel>
 
-#include <QtCore/QThreadPool>
-
 #include <QApplication>
 
 #include "libpeakpick/peakpick.h"
@@ -37,16 +34,8 @@
 
 #include "qbit.h"
 
-
-
-
-QBit::QBit(): mdiArea(new QMdiArea), m_files(new fileHandler)
-{
-    
-    mdiArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    mdiArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    setCentralWidget(mdiArea);
-    
+QBit::QBit():  m_files(new fileHandler)
+{    
     QAction* fileaction = new QAction(this);
     fileaction->setText( "Open File" );
     connect(fileaction, SIGNAL(triggered()), SLOT(LoadFile()) );
@@ -67,25 +56,36 @@ QBit::~QBit()
 }
 
 
-void QBit::LoadFile()
+void QBit::LoadFile(const QString &file)
 {
-    QStringList fileName = QFileDialog::getOpenFileNames(this, tr("Open File"),
-                                                QDir::homePath(),
-                                                tr("Files (*.dat *.txt *.spec fid 1r)"));
-    
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    m_widget = new MultiSpecWidget(1, this);
+    m_files->addFile(file);
+   
+    setCentralWidget(m_widget);     
+    QApplication::restoreOverrideCursor();
+}
+
+
+void QBit::LoadFiles(const QStringList &fileName)
+{
     if(fileName.size() == 0)
         return;
-    
-    
-    
-    
+
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     m_widget = new MultiSpecWidget(fileName.size(), this);
     m_files->addFiles(fileName);
    
     setCentralWidget(m_widget);     
     QApplication::restoreOverrideCursor();
+}
 
+void QBit::LoadFile()
+{
+    QStringList fileName = QFileDialog::getOpenFileNames(this, tr("Open File"),
+                                                QDir::homePath(),
+                                                tr("Files (*.dat *.txt *.spec fid 1r)"));
+    LoadFiles(fileName);
 }
 
 void QBit::LoadSpectrum(int index)
