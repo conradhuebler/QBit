@@ -65,9 +65,9 @@ public:
     fileHandler();
     ~fileHandler();
     
-    void addFile(const QString &filename);
+    int addFile(const QString &filename);
     void addFiles(const QStringList &filenames);
-    void addDirectory(const QString &dirname);
+    int addDirectory(const QString &dirname);
     void addDirectories(const QString &dirnames);
     
     NMRSpec * Spectrum(int i) { return m_spectra[i]; }
@@ -80,5 +80,6 @@ private:
     
 signals:
     void Finished();
-    void SpectrumAdded(int num);
+    void SpectrumAdded(int index);
+    void FileAdded(int index);
 };

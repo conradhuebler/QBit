@@ -101,9 +101,9 @@ include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} eigen/ libpeakpic
 set(qbit_gui 
                 src/core/nmrspec.cpp
                 src/core/filehandler.cpp
-                src/gui/selectguess.cpp
-                src/gui/chartview.cpp
-                src/gui/multispecwidget.cpp
+                src/gui/dialogs/selectguess.cpp
+                src/gui/widgets/chartview.cpp
+                src/gui/widgets/multispecwidget.cpp
                 src/gui/qbit.cpp
                 src/main.cpp)
 

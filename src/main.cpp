@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 #endif
 
     QBit qbit;
-    qbit.show();
+    qbit.showMaximized();
     qbit.LoadFiles(args);
     
     return app.exec();

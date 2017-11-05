@@ -32,8 +32,11 @@ public:
     PeakPick::spectrum * Raw() { return m_raw; }
     PeakPick::spectrum * Data() { return m_data; }
     PeakPick::spectrum * Fid() {return m_fid; }
+    
     QString Name() const { return m_name; }
+    QString Path() const { return m_path; }
+    void setPath(const QString &path) { m_path = path; }
 private:
-    QString m_name;
+    QString m_name, m_path;
     PeakPick::spectrum *m_raw, *m_data, *m_fid;
 };

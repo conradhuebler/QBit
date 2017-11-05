@@ -25,8 +25,12 @@
 
 #include "src/core/filehandler.h"
 
-class QMdiArea;
+class QHBoxLayout;
+class QListWidget;
+class QWidget;
+class QTabWidget;
 class MultiSpecWidget;
+class QListWidgetItem;
 
 class QBit : public QMainWindow
 {
@@ -38,12 +42,21 @@ public:
     void LoadFile(const QString &file);
     void LoadFiles(const QStringList &files);
     
+    
+    
 private:
     QPointer<fileHandler > m_files;
     QPointer<MultiSpecWidget > m_widget; 
+    QPointer<QWidget > m_mainwidget;
+    QPointer<QListWidget > m_files_widget;
+    QHBoxLayout *m_layout;
+    int m_current_index; 
     
 private slots:
     void LoadFile();
+    void LoadDir();
     void LoadSpectrum(int index);
     void Finished();
+    void addFile(int index);
+    void LoadItem(QListWidgetItem * item);
 };

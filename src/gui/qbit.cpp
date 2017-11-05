@@ -20,33 +20,53 @@
 
 #include <QtWidgets/QAction>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QLabel>
-
+#include <QtWidgets/QListWidget>
 #include <QApplication>
 
 #include "libpeakpick/peakpick.h"
 #include "src/core/filehandler.h"
-#include "src/gui/multispecwidget.h"
+#include "src/gui/widgets/multispecwidget.h"
 
 #include "qbit.h"
 
-QBit::QBit():  m_files(new fileHandler)
+QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget)
 {    
     QAction* fileaction = new QAction(this);
     fileaction->setText( "Open File" );
     connect(fileaction, SIGNAL(triggered()), SLOT(LoadFile()) );
     menuBar()->addMenu( "File" )->addAction( fileaction );
     
+    QAction* diraction = new QAction(this);
+    diraction->setText( "Open Dir" );
+    connect(diraction, SIGNAL(triggered()), SLOT(LoadDir()) );
+    menuBar()->addMenu( "File" )->addAction( diraction );
+    
     QAction* action = new QAction(this);
     action->setText( "Quit" );
     connect(action, SIGNAL(triggered()), SLOT(close()) );
     menuBar()->addMenu( "Exit" )->addAction( action );
+
+
+    m_files_widget = new QListWidget;
+    m_files_widget->setMaximumWidth(200);
+    
+    m_layout = new QHBoxLayout;
+    m_layout->addWidget(m_files_widget);
+
+    m_mainwidget->setLayout(m_layout);
+    
+    setCentralWidget(m_mainwidget);
+
     connect(m_files, &fileHandler::SpectrumAdded, this, &QBit::LoadSpectrum);
     connect(m_files, &fileHandler::Finished, this, &QBit::Finished);
+    connect(m_files, &fileHandler::FileAdded, this, &QBit::addFile);
+    connect(m_files_widget, &QListWidget::itemDoubleClicked, this, &QBit::LoadItem);
 }
 
 
@@ -59,10 +79,11 @@ QBit::~QBit()
 void QBit::LoadFile(const QString &file)
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    if(m_widget)
+        delete m_widget;
     m_widget = new MultiSpecWidget(1, this);
     m_files->addFile(file);
-   
-    setCentralWidget(m_widget);     
+    m_layout->addWidget(m_widget);
     QApplication::restoreOverrideCursor();
 }
 
@@ -73,10 +94,12 @@ void QBit::LoadFiles(const QStringList &fileName)
         return;
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    if(m_widget)
+        delete m_widget;
     m_widget = new MultiSpecWidget(fileName.size(), this);
     m_files->addFiles(fileName);
-   
-    setCentralWidget(m_widget);     
+    
+    m_layout->addWidget(m_widget);
     QApplication::restoreOverrideCursor();
 }
 
@@ -88,18 +111,55 @@ void QBit::LoadFile()
     LoadFiles(fileName);
 }
 
+void QBit::LoadDir()
+{
+    QString dir = QFileDialog::getExistingDirectory(this, tr("Open File"),
+                                                QDir::homePath());
+    
+    if(m_files->addDirectory(dir) > 0)
+        LoadItem(m_files_widget->item(0));
+}
+
 void QBit::LoadSpectrum(int index)
 {
+    addFile(index);
+    m_current_index = index;
     m_widget->addSpectrum(m_files->Spectrum(index));
 }
 
 void QBit::Finished()
 {
-    m_widget->UpdateSeries(12);
+    m_widget->UpdateSeries(6);
     m_widget->ResetZoomLevel();
 }
 
+void QBit::addFile(int index)
+{
+    if(index == -1)
+        return;
+    QString name = m_files->Spectrum(index)->Name();
+    QString path = m_files->Spectrum(index)->Path();
+    
+    QListWidgetItem *item = new QListWidgetItem(name);
+    item->setData(Qt::UserRole, index);
+    item->setData(Qt::UserRole + 1, path);
+    
+    m_files_widget->addItem(item);
+}
 
+void QBit::LoadItem(QListWidgetItem * item)
+{
+    int index = item->data(Qt::UserRole).toInt();
+    if(index == m_current_index)
+        return;
+    if(m_widget)
+        delete m_widget;
+    m_widget = new MultiSpecWidget(1, this);
+    m_widget->addSpectrum(m_files->Spectrum(index));
+    m_layout->addWidget(m_widget);
+    Finished();
+    m_current_index = index;
+}
 
 
 #include "qbit.moc"

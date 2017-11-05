@@ -27,7 +27,7 @@
 #include <QtCharts/QtCharts>
 
 #include "chartview.h"
-#include "selectguess.h"
+#include "src/gui/dialogs/selectguess.h"
 #include "multispecwidget.h"
 
 void FitThread::run()
@@ -46,14 +46,7 @@ MultiSpecWidget::MultiSpecWidget(int files, QWidget *parent ) : QWidget(parent),
     QGridLayout *layout = new QGridLayout;
     
     QHBoxLayout *toolbar = new QHBoxLayout;
-    m_normalise = new QPushButton(tr("Normalise"));
-    connect(m_normalise, SIGNAL(clicked()), this, SLOT(Normalise()));
-    toolbar->addWidget(m_normalise);
-    
-    m_denoise = new QPushButton(tr("DeNoise"));
-    connect(m_denoise, SIGNAL(clicked()), this, SLOT(DeNoise()));
-    toolbar->addWidget(m_denoise);
-    
+
     m_pickpeaks = new QPushButton(tr("Pick Peaks"));
     connect(m_pickpeaks, SIGNAL(clicked()), this, SLOT(PickPeaks()));
     toolbar->addWidget(m_pickpeaks);
@@ -69,11 +62,7 @@ MultiSpecWidget::MultiSpecWidget(int files, QWidget *parent ) : QWidget(parent),
     m_deconvulate = new QPushButton(tr("Deconvulate"));
     connect(m_deconvulate, SIGNAL(clicked()), this, SLOT(Deconvulate()));
     toolbar->addWidget(m_deconvulate);
-    
-    m_reload = new QPushButton(tr("Reload"));
-    connect(m_reload, SIGNAL(clicked()), this, SLOT(Reload()));
-    toolbar->addWidget(m_reload);
-    
+
     layout->addLayout(toolbar, 0, 0);
     
     toolbar = new QHBoxLayout;

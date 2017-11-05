@@ -34,6 +34,18 @@
 
 #include "filehandler.h"
 
+
+static void findRecursion(const QString &path, QStringList *result)
+{
+    QDir currentDir(path);
+    QStringList pattern = QStringList() << "1r";
+    const QString prefix = path + QLatin1Char('/');
+    foreach (const QString &match, currentDir.entryList(pattern, QDir::Files | QDir::NoSymLinks))
+        result->append(prefix + match);
+    foreach (const QString &dir, currentDir.entryList(QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot))
+        findRecursion(prefix + dir, result);
+}
+
 SpectrumLoader::SpectrumLoader(const QString &str) : m_filename(str)
 {
     setAutoDelete(false);
@@ -92,7 +104,10 @@ bool SpectrumLoader::loadNMRFile()
 
     Vector y = BinFile2Vector(m_filename);;
     if(y.size() == 0)
+    {
+        qDebug() << m_filename << " is empty?!";
         return false;
+    }
     const QString high_field = "##$ABSF1=";
     const QString low_field = "##$ABSF2=";
     
@@ -197,17 +212,17 @@ fileHandler::~fileHandler()
 }
 
 
-void fileHandler::addFile(const QString& filename)
+int fileHandler::addFile(const QString& filename)
 {
     SpectrumLoader * loader = new SpectrumLoader(filename);;
     loader->run();
-    if(loader->Loaded())
-        return;
+    if(!loader->Loaded())
+        return -1;
     m_spectra.append( new NMRSpec(loader->Spectrum()) );
     emit SpectrumAdded(m_spectra.size() - 1);
-    
     delete loader;
     emit Finished();
+    return m_spectra.size() - 1;
 }
 
 void fileHandler::addFiles(const QStringList& filenames)
@@ -227,15 +242,41 @@ void fileHandler::addFiles(const QStringList& filenames)
             continue;
         m_spectra.append( new NMRSpec(loader[i]->Spectrum()) );
         emit SpectrumAdded(m_spectra.size() - 1);
+        
     }
     qDeleteAll(loader);
     emit Finished();
 }
 
 
-void fileHandler::addDirectory(const QString& dirname)
+int fileHandler::addDirectory(const QString& dirname)
 {
-    
+    QStringList files;
+    findRecursion(dirname, &files);
+        
+    QVector<SpectrumLoader *> loader;
+
+    for(const QString &str : files)
+    {
+        SpectrumLoader * load = new SpectrumLoader(str);;
+        loader << load;
+        QThreadPool::globalInstance()->start(load);  
+        
+
+    }    
+    QThreadPool::globalInstance()->waitForDone();
+    int count = 0;
+    for(int i = 0; i < loader.size(); ++i)
+    {
+        if(!loader[i]->Loaded())
+            continue;
+        count++;
+        m_spectra.append( new NMRSpec(loader[i]->Spectrum()) );
+        emit FileAdded(m_spectra.size() - 1);
+        
+    }
+    qDeleteAll(loader);
+    return count;
 }
 
 void fileHandler::addDirectories(const QString& dirnames)
