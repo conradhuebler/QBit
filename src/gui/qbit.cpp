@@ -46,6 +46,9 @@ QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new
     m_openDir->setText( "Open Dir" );
     connect(m_openDir, &QAction::triggered, this, &QBit::LoadDir );
     
+    m_load_sev= new QAction(this);
+    m_load_sev->setText( "Open Selected" );
+    connect(m_load_sev, &QAction::triggered, this, &QBit::LoadSeveral );
     
     m_quit = new QAction(this);
     m_quit->setText( "Quit" );
@@ -55,14 +58,20 @@ QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new
     m_file->addAction(m_open);
     m_file->addAction(m_openDir);
     
+    m_manipulate = new QToolBar;
+    m_manipulate->addAction(m_load_sev);
+    
     m_system = new QToolBar;
     m_system->addAction(m_quit);
     
     addToolBar(m_file);
+    addToolBar(m_manipulate);
     addToolBar(m_system);
     
     m_files_widget = new QListWidget;
     m_files_widget->setMaximumWidth(200);
+    m_files_widget->setSelectionMode(QAbstractItemView::MultiSelection);
+    
     
     m_layout = new QHBoxLayout;
     m_layout->addWidget(m_files_widget);
@@ -150,7 +159,7 @@ void QBit::addFile(int index)
     m_files_widget->addItem(item);
 }
 
-void QBit::LoadItem(QListWidgetItem * item)
+void QBit::LoadItem(const QListWidgetItem * item)
 {
     int index = item->data(Qt::UserRole).toInt();
     if(index == m_current_index)
@@ -161,5 +170,14 @@ void QBit::LoadItem(QListWidgetItem * item)
     m_current_index = index;
 }
 
-
+void QBit::LoadSeveral()
+{
+    m_widget->clear();
+    for(const QListWidgetItem *item : m_files_widget->selectedItems())
+    {
+        int index = item->data(Qt::UserRole).toInt();
+        m_widget->addSpectrum(m_files->Spectrum(index));
+    }
+        Finished();
+}
 #include "qbit.moc"
