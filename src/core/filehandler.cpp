@@ -23,6 +23,7 @@
 #include <string>
 #include <bitset>
 
+#include <QtCore/QCollator>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
@@ -254,6 +255,18 @@ int fileHandler::addDirectory(const QString& dirname)
     QStringList files;
     findRecursion(dirname, &files);
         
+    
+    
+        QCollator collator;
+        collator.setNumericMode(true);
+        std::sort(
+            files.begin(),
+                  files.end(),
+                  [&collator](const QString &key1, const QString &key2)
+                  {
+                      return collator.compare(key1, key2) < 0;
+                  });
+    
     QVector<SpectrumLoader *> loader;
 
     for(const QString &str : files)
