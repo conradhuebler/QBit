@@ -261,9 +261,8 @@ int fileHandler::addDirectory(const QString& dirname)
         SpectrumLoader * load = new SpectrumLoader(str);;
         loader << load;
         QThreadPool::globalInstance()->start(load);  
-        
-
     }    
+    
     QThreadPool::globalInstance()->waitForDone();
     int count = 0;
     for(int i = 0; i < loader.size(); ++i)

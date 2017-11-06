@@ -51,6 +51,8 @@ private:
     QPointer<QListWidget > m_files_widget;
     QHBoxLayout *m_layout;
     int m_current_index; 
+    QAction *m_open, *m_openDir, *m_quit;
+    QToolBar *m_file, *m_system;
     
 private slots:
     void LoadFile();

@@ -36,7 +36,7 @@ void FitThread::run()
 }
 
 
-MultiSpecWidget::MultiSpecWidget(int files, QWidget *parent ) : QWidget(parent), m_files(files), m_scale(2), m_first_zoom(false), m_scale_jobs(0)
+MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0), m_scale(2), m_first_zoom(false), m_scale_jobs(0)
 {
     m_chart = new QtCharts::QChart;
     m_chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
@@ -111,7 +111,7 @@ MultiSpecWidget::MultiSpecWidget(int files, QWidget *parent ) : QWidget(parent),
 
 MultiSpecWidget::~MultiSpecWidget()
 {
-    qDeleteAll(m_data_threads);
+    clear();
 }
 
 void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
@@ -127,8 +127,6 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     
     m_spectrum << spec;
 
-    
-    
     m_chartview->addSeries(spec, true);
     m_chartview->setXAxis("chemical shift [ppm]");
     m_chartview->setYAxis("Intensity");
@@ -139,27 +137,30 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     thread->setSeries(  spec );
     m_data_threads << thread;
     
-    spec = new QtCharts::QLineSeries;
-    spec->setName(spectrum->Name());
-    spec->setUseOpenGL(true);
-    
-    m_raw_spec << spec;
-    
     m_chartview->addSeries(spec, true);
     m_chartview->setXAxis("chemical shift [ppm]");
     m_chartview->setYAxis("Intensity");
-    
-    spec->setVisible(false);
-    
-//     thread = new UpdateThread;
-//     thread->setSpectrum( m_spectra[m_spectra.size() - 1]->Data(), m_spectra[m_spectra.size() - 1]->Raw() );
-//     thread->setNumber( m_spectrum.size() - 1 );
-//     thread->setSeries(  spec );
-//     m_raw_threads << thread;
-    
+        
     FitThread *fit = new FitThread;
     fit->spectrum = m_spectra[m_spectra.size() - 1]->Data();
     m_fit_threads << fit;
+    m_files++;
+}
+
+void MultiSpecWidget::clear()
+{
+    qDeleteAll(m_data_threads);
+    m_data_threads.clear();
+    qDeleteAll(m_fit_threads);
+    m_fit_threads.clear();
+    qDeleteAll(m_peaks);
+    m_peaks.clear();
+    qDeleteAll(m_fit);
+    m_fit.clear();
+    qDeleteAll(m_spectrum);
+    m_spectrum.clear();
+    m_spectra.clear();
+    m_files = 0;
 }
 
 void MultiSpecWidget::ResetZoomLevel()
@@ -167,7 +168,7 @@ void MultiSpecWidget::ResetZoomLevel()
     m_chartview->formatAxis();
     m_chartview->setYMax(m_spectrum.size() + 2);
     m_chartview->setX(m_xmin, m_xmax);
-    UpdateSeries(24);
+    UpdateSeries(6);
 }
 
 void MultiSpecWidget::UpdateSeries(int tick)

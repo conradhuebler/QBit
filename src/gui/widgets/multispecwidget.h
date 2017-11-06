@@ -41,13 +41,18 @@ public:
     
     inline void run() override
     {
+        int curr_tick = m_tick;
+        
+        if(qAbs(m_xmax -m_xmin) < 2)
+            curr_tick = 1;
+        
         int crude = 0;
         int tight = 0;
             
         m_series->clear();
 
         int count = 0;
-        for(int i = 0; i < m_spectrum->size(); i += m_tick)  
+        for(int i = 0; i < m_spectrum->size(); i += curr_tick)  
         {
             if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
                 continue;
@@ -58,7 +63,6 @@ public:
                     m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
                 else
                     m_series->append(QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
-                
                 if(crude == 48)
                     crude = 0;
                 if(tight == 24)
@@ -103,10 +107,11 @@ class MultiSpecWidget : public QWidget
     Q_OBJECT
     
 public:
-    MultiSpecWidget(int files, QWidget *parent);
+    MultiSpecWidget(QWidget *parent);
     ~MultiSpecWidget();
     
-    
+    void clear();
+//     void setFiles(int files) { m_files = files; }
 public slots:
     void addSpectrum(NMRSpec *spectrum);
     void UpdateSeries(int tick);
@@ -118,13 +123,13 @@ private:
     QSpinBox *m_functions;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
-    QVector<QPointer<QtCharts::QLineSeries > >m_raw_spec, m_spectrum, m_peaks, m_fit; 
+    QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit; 
     QStringList m_filenames;
     QVector<PeakPick::Peak > m_peak_list;
     QVector<NMRSpec *> m_spectra;
     QVector<PeakPick::Peak> m_maxpeak;
     QVector<double > m_threshold;
-    QVector< UpdateThread * > m_data_threads; //, m_raw_threads;
+    QVector< UpdateThread * > m_data_threads; 
     QVector< FitThread *> m_fit_threads;
     std::vector<PeakPick::Peak> peaks;
     QPointer<QtCharts::QLineSeries > m_chloroform;

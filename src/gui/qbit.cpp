@@ -35,30 +35,39 @@
 
 #include "qbit.h"
 
-QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget)
+QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new MultiSpecWidget(this))
 {    
-    QAction* fileaction = new QAction(this);
-    fileaction->setText( "Open File" );
-    connect(fileaction, SIGNAL(triggered()), SLOT(LoadFile()) );
-    menuBar()->addMenu( "File" )->addAction( fileaction );
+    m_open = new QAction(this);
+    m_open->setText( "Open File" );
+    connect(m_open, &QAction::triggered, this, static_cast<void(QBit::*)()>(&QBit::LoadFile ));
     
-    QAction* diraction = new QAction(this);
-    diraction->setText( "Open Dir" );
-    connect(diraction, SIGNAL(triggered()), SLOT(LoadDir()) );
-    menuBar()->addMenu( "File" )->addAction( diraction );
     
-    QAction* action = new QAction(this);
-    action->setText( "Quit" );
-    connect(action, SIGNAL(triggered()), SLOT(close()) );
-    menuBar()->addMenu( "Exit" )->addAction( action );
-
-
+    m_openDir = new QAction(this);
+    m_openDir->setText( "Open Dir" );
+    connect(m_openDir, &QAction::triggered, this, &QBit::LoadDir );
+    
+    
+    m_quit = new QAction(this);
+    m_quit->setText( "Quit" );
+    connect(m_quit, &QAction::triggered, this, &QMainWindow::close );
+   
+    m_file = new QToolBar;
+    m_file->addAction(m_open);
+    m_file->addAction(m_openDir);
+    
+    m_system = new QToolBar;
+    m_system->addAction(m_quit);
+    
+    addToolBar(m_file);
+    addToolBar(m_system);
+    
     m_files_widget = new QListWidget;
     m_files_widget->setMaximumWidth(200);
     
     m_layout = new QHBoxLayout;
     m_layout->addWidget(m_files_widget);
-
+    m_layout->addWidget(m_widget);
+    
     m_mainwidget->setLayout(m_layout);
     
     setCentralWidget(m_mainwidget);
@@ -79,11 +88,8 @@ QBit::~QBit()
 void QBit::LoadFile(const QString &file)
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    if(m_widget)
-        delete m_widget;
-    m_widget = new MultiSpecWidget(1, this);
+    m_widget->clear();
     m_files->addFile(file);
-    m_layout->addWidget(m_widget);
     QApplication::restoreOverrideCursor();
 }
 
@@ -94,12 +100,9 @@ void QBit::LoadFiles(const QStringList &fileName)
         return;
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    if(m_widget)
-        delete m_widget;
-    m_widget = new MultiSpecWidget(fileName.size(), this);
+    m_widget->clear();
     m_files->addFiles(fileName);
-    
-    m_layout->addWidget(m_widget);
+
     QApplication::restoreOverrideCursor();
 }
 
@@ -152,11 +155,8 @@ void QBit::LoadItem(QListWidgetItem * item)
     int index = item->data(Qt::UserRole).toInt();
     if(index == m_current_index)
         return;
-    if(m_widget)
-        delete m_widget;
-    m_widget = new MultiSpecWidget(1, this);
+    m_widget->clear();
     m_widget->addSpectrum(m_files->Spectrum(index));
-    m_layout->addWidget(m_widget);
     Finished();
     m_current_index = index;
 }
