@@ -324,7 +324,8 @@ void MultiSpecWidget::FitSingle()
         Vector parameter = m_fit_threads[work]->parameter;
         std::cout << parameter << std::endl;
         PeakPick::Peak peak= m_fit_threads[work]->peak;
-        result += m_spectra[work]->Name() + "\t" + QString::number(parameter(0)) + "\t" + QString::number(parameter(1)) + "\t" + QString::number(parameter(2)) + "\t" + QString::number(parameter(3)) + "\t" + QString::number(parameter(4)) + "\n";
+        for(int i = 0; i < guess.size(); ++i)
+            result += m_spectra[work]->Name() + "\t" + QString::number(parameter(0+i*5)) + "\t" + QString::number(parameter(1+i*5)) + "\t" + QString::number(parameter(2+i*5)) + "\t" + QString::number(parameter(3+i*5)) + "\t" + QString::number(parameter(4+i*5)) + "\n";
         for(int i = 0; i < guess.size(); ++i)
             last_row += QString::number(parameter(0+i*5)) + " ";
         last_row += "\n";
@@ -333,7 +334,7 @@ void MultiSpecWidget::FitSingle()
         for(int i = peak.start; i <= peak.end; ++i)
         {
             double x = m_spectra[work]->Data()->X(i);
-            series->append(x, PeakPick::Signal(x, parameter, guess.size()) + work );
+            series->append(x, PeakPick::Signal(x, parameter, guess.size())*m_scale + work );
         }
         series->setName(QString::number(parameter(0)));
         m_chartview->addSeries(series);

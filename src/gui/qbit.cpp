@@ -178,6 +178,7 @@ void QBit::LoadSeveral()
         int index = item->data(Qt::UserRole).toInt();
         m_widget->addSpectrum(m_files->Spectrum(index));
     }
-        Finished();
+    Finished();
+    m_files_widget->clearSelection();
 }
 #include "qbit.moc"
