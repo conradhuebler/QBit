@@ -95,6 +95,7 @@ namespace PeakPick{
             for(int i = start; i <= end; ++i)
             {
                 double x = spec->X(i);
+                std::cout << Signal(x, parameter, functions) << " " << spec->Y(i) << std::endl;
                 fvec(j) =  Signal(x, parameter, functions) - spec->Y(i);
                 ++j;
             }
@@ -121,21 +122,19 @@ namespace PeakPick{
         functor.functions = guess.size(); 
         double start = spec->X(peak.start);
         double end = spec->X(peak.end);
+        std::cout << start << " " << end << std::endl;
+
         Vector parameter(5*guess.size());
         double step = (end - start)/double(functions+1);
         std::cout << guess << std::endl;
         for(int i = 0; i < guess.size(); ++i)
         {
-//             if(i < guess.size())
-                parameter(0+i*5) = guess(i);
-//             else
-//                 parameter(0+i*5) = end - step*(i+1);
+            parameter(0+i*5) = guess(i);
             parameter(1+i*5) = 1;
             parameter(2+i*5) = 10;
             parameter(3+i*5) = 1/double(50);
             parameter(4+i*5) = 1/double(30);
         }
-        std::cout << parameter << std::endl;
         Eigen::NumericalDiff<MyFunctor> numDiff(functor);
         Eigen::LevenbergMarquardt<Eigen::NumericalDiff<MyFunctor> > lm(numDiff);
         Eigen::LevenbergMarquardtSpace::Status status = lm.minimizeInit(parameter);

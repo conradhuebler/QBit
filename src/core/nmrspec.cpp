@@ -23,7 +23,7 @@
 
 #include "nmrspec.h"
 
-NMRSpec::NMRSpec(const QString &name, const PeakPick::spectrum &data, const PeakPick::spectrum &raw) : m_name(name), m_data(new PeakPick::spectrum(data)), m_raw(new PeakPick::spectrum(raw))
+NMRSpec::NMRSpec(const QString &name, const PeakPick::spectrum &data, const PeakPick::spectrum &raw, bool nmr) : m_name(name), m_data(new PeakPick::spectrum(data)), m_raw(new PeakPick::spectrum(raw)), m_nmr(nmr)
 {
     
     

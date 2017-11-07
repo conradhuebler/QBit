@@ -42,7 +42,7 @@ public:
     bool Loaded() const { return m_load; }
     
     
-    NMRSpec Spectrum() const { return NMRSpec(m_basename, spectrum, original); }
+    NMRSpec Spectrum() const { return NMRSpec(m_basename, spectrum, original, m_nmr); }
     
 private:
     bool loadAsciiFile();
@@ -54,7 +54,7 @@ private:
     QString m_filename, m_basename, m_path;
     PeakPick::spectrum spectrum, original;
     bool m_load = false;
-
+    bool m_nmr = true;
 };
 
 

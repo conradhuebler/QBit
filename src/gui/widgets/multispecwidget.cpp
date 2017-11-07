@@ -298,18 +298,28 @@ void MultiSpecWidget::FitSingle()
     {
         
         PeakPick::Peak peak;
-        
+        int factor = -1;
+        if( !m_spectra[work]->isNMR())
+            factor = 1;
+        double diff_min = 10, diff_max = 10;
         for(int i = 0; i < m_spectra[work]->Data()->size(); ++i)
-        {
+        { 
             double Xi = m_spectra[work]->Data()->X(i);
-            if( Xi < -1*m_start->value())
+            
+            double t_diff_min = qAbs(Xi-m_chartview->XMin());
+            double t_diff_max = qAbs(Xi-m_chartview->XMax());
+            
+            if( t_diff_min < diff_min)
+                peak.start = i;
+            
+//             if(Xi < factor*m_max->value())
+//                 peak.max = i; 
+            
+            if(t_diff_max < diff_max)
                 peak.end = i;
             
-            if(Xi < -1*m_max->value())
-                peak.max = i; 
-            
-            if(Xi < -1*m_end->value() )
-                peak.start = i;
+            diff_min = t_diff_min;
+            diff_max = t_diff_max;
         }
         m_fit_threads[work]->guess = guess;
         m_fit_threads[work]->peak = peak;
