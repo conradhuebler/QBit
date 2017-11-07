@@ -78,3 +78,7 @@ QString SelectGuess::PeakList() const
     return m_maxima->text();
 }
 
+void SelectGuess::clear()
+{
+    m_maxima->clear();
+}

@@ -39,6 +39,8 @@ public:
     void setStart(double start);
     void setEnd(double end);
     
+    void clear();
+    
     QString PeakList() const;
     
 public slots:

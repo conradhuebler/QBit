@@ -283,6 +283,7 @@ void MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
 
 void MultiSpecWidget::PrepareFit()
 {
+    m_select->clear();
     m_select->show();
 }
 
