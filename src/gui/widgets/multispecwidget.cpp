@@ -142,7 +142,7 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     m_chartview->setYAxis("Intensity");
         
     FitThread *fit = new FitThread;
-    fit->spectrum = m_spectra[m_spectra.size() - 1]->Data();
+    fit->spectrum = m_spectra[m_spectra.size() - 1]->Raw();
     m_fit_threads << fit;
     m_files++;
 }

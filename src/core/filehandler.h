@@ -48,6 +48,7 @@ private:
     bool loadAsciiFile();
     bool loadNMRFile();
     bool loadFidFile();
+    bool loadDptFile();
     Vector BinFile2Vector(const QString &filename);
     
     QString m_filename, m_basename, m_path;

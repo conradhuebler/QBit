@@ -33,8 +33,10 @@ namespace PeakPick{
     inline double mean(const Vector &vector, int *min = NULL, int *max = NULL)
     {
         if(vector.size() == 0)
+        {
+            std::cout << "PeakPick::mean() vector is empty" << std::endl;
             return 0;
-        
+        }
         double sum = 0;
         double temp_min = vector(0);
         int pos_min = 0;
@@ -61,7 +63,6 @@ namespace PeakPick{
             if(min != NULL)
                 *min = pos_min;
         }
-        
         return sum/double(vector.size());
     }
     

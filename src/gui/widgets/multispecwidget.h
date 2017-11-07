@@ -41,18 +41,31 @@ public:
     
     inline void run() override
     {
-        int curr_tick = m_tick;
-        
-        if(qAbs(m_xmax -m_xmin) < 2)
-            curr_tick = 1;
-        
-        int crude = 0;
-        int tight = 0;
-            
         m_series->clear();
 
+        if(qAbs(m_xmax -m_xmin) < 2 || m_spectrum->size() < 10000)
+            TightAdd();
+        else
+            LooseAdd();
+    }
+    
+    
+    
+    inline void setNumber(int number) { m_number = number; }
+    inline void setSpectrum(const PeakPick::spectrum *spectrum, const PeakPick::spectrum *raw) { m_spectrum = spectrum; m_raw = raw; }
+    inline void setSeries(QPointer<QtCharts::QLineSeries> series) { m_series = series; }
+    inline void setScaling(double scaling) { m_scaling = scaling; }
+    inline void setTick(int tick) { m_tick = tick;}
+    inline void setRange(double xmin, double xmax) { m_xmin = xmin; m_xmax = xmax; }
+    
+private:
+    inline void LooseAdd()
+    {
+        int crude = 0;
+        int tight = 0;
         int count = 0;
-        for(int i = 0; i < m_spectrum->size(); i += curr_tick)  
+        
+         for(int i = 0; i < m_spectrum->size(); i += m_tick)  
         {
             if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
                 continue;
@@ -73,14 +86,16 @@ public:
             crude++;
         }
     }
-    inline void setNumber(int number) { m_number = number; }
-    inline void setSpectrum(const PeakPick::spectrum *spectrum, const PeakPick::spectrum *raw) { m_spectrum = spectrum; m_raw = raw; }
-    inline void setSeries(QPointer<QtCharts::QLineSeries> series) { m_series = series; }
-    inline void setScaling(double scaling) { m_scaling = scaling; }
-    inline void setTick(int tick) { m_tick = tick;}
-    inline void setRange(double xmin, double xmax) { m_xmin = xmin; m_xmax = xmax; }
-    
-private:
+    inline void TightAdd()
+    {
+        for(int i = 0; i < m_spectrum->size(); ++i)  
+        {
+            if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
+                continue;
+
+            m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
+        }
+    }
     QPointer<QtCharts::QLineSeries> m_series;
     const PeakPick::spectrum *m_spectrum, *m_raw;
     int m_tick = 12;

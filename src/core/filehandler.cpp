@@ -179,6 +179,43 @@ Vector SpectrumLoader::BinFile2Vector(const QString& filename)
     return y;
 }
 
+bool SpectrumLoader::loadDptFile()
+{
+    Vector y;
+    
+    QFile file(m_filename);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << file.errorString();
+        return false; 
+    }
+    
+    QStringList filecontent = QString(file.readAll()).split("\n");
+    double min = 0;
+    double max = 0;
+    int i = 1;
+    std::vector<double> tmp_entries, entries;
+    
+    for(const QString &str : filecontent)
+    {
+        QStringList cells = str.split(",");
+        if(cells.size() != 2)
+            continue;
+        if(i == 1)
+            max = cells[0].toDouble();
+        i++;
+        tmp_entries.push_back(cells[1].remove("\r").toDouble());
+        min = cells[0].toDouble();
+    }
+    
+    for(int j = tmp_entries.size(); j > 0; --j)
+        entries.push_back(tmp_entries[j]);
+    
+    y = Vector::Map(&entries[0], entries.size()); 
+    original = PeakPick::spectrum(y,min,max); 
+    return true;
+}
+
 
 void SpectrumLoader::run()
 {
@@ -188,13 +225,17 @@ void SpectrumLoader::run()
         m_load = loadNMRFile();
     else if(m_filename.contains("fid"))
         m_load = loadFidFile();
-    
+    else if(m_filename.contains("dpt"))
+        m_load = loadDptFile();
     if(m_load)
     {
         spectrum = PeakPick::spectrum(original);
-        PeakPick::Normalise(&original,0,2);
-        PeakPick::Normalise(&spectrum, 0, 2);
-        PeakPick::SmoothFunction(&spectrum, 12);
+        if(!(m_filename.contains("dpt")))
+        {
+            PeakPick::Normalise(&original,0,2);
+            PeakPick::Normalise(&spectrum, 0, 2);
+            PeakPick::SmoothFunction(&spectrum, 12);
+        }
     }
 }
 
