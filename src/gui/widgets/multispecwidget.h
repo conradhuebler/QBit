@@ -107,13 +107,20 @@ private:
 class FitThread : public QRunnable
 {
 public:
-    inline FitThread() { setAutoDelete(false); }
+    inline FitThread(const QString &name, int position) : m_name(name), m_position(position) { setAutoDelete(false); }
     
     virtual void run() override;
+    
+    PeakPick::spectrum *Data() const { return spectrum; }
+    QString Name() const { return m_name; }
+    int Position() const { return m_position; }
     PeakPick::spectrum *spectrum;
     PeakPick::Peak peak;
     Vector parameter, guess; 
-    int functions;
+    int functions, m_position;
+    
+private:
+    QString m_name;
 
 };
 
@@ -124,17 +131,15 @@ class MultiSpecWidget : public QWidget
 public:
     MultiSpecWidget(QWidget *parent);
     ~MultiSpecWidget();
-    
     void clear();
-//     void setFiles(int files) { m_files = files; }
+    
 public slots:
     void addSpectrum(NMRSpec *spectrum);
     void UpdateSeries(int tick);
     void ResetZoomLevel(); 
     
 private:
-    QPushButton *m_normalise, *m_denoise, *m_reload, *m_pickpeaks, *m_fit_single, *m_deconvulate, *m_take;
-    QDoubleSpinBox *m_start, *m_max, *m_end;
+    QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate;
     QSpinBox *m_functions;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
@@ -152,6 +157,8 @@ private:
     double m_scale, m_xmin, m_xmax;
     bool m_first_zoom;
     SelectGuess *m_select;
+    void AnalyseFitThreads(const QVector<FitThread *> &threads);
+    QVector<QPointer<QTextEdit > > m_texts;
     
 private slots:
     void Scale(double factor);
@@ -159,13 +166,12 @@ private slots:
     void Deconvulate();
     void PrepareFit();
     void FitSingle();
-    void MaxChanged();
-    void UpdateRange();
     void scaleUp();
     void scaleDown();
     void AddRect(const QPointF &point1, const QPointF &point2);
     void MinChanged(double val);
     void MaxChanged(double val);
+    void UpdatePeaks(double factor);
     
 signals:
     void PeakSelected(const QPointF &point);

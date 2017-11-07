@@ -95,7 +95,6 @@ namespace PeakPick{
             for(int i = start; i <= end; ++i)
             {
                 double x = spec->X(i);
-                std::cout << Signal(x, parameter, functions) << " " << spec->Y(i) << std::endl;
                 fvec(j) =  Signal(x, parameter, functions) - spec->Y(i);
                 ++j;
             }
@@ -122,11 +121,9 @@ namespace PeakPick{
         functor.functions = guess.size(); 
         double start = spec->X(peak.start);
         double end = spec->X(peak.end);
-        std::cout << start << " " << end << std::endl;
 
         Vector parameter(5*guess.size());
         double step = (end - start)/double(functions+1);
-        std::cout << guess << std::endl;
         for(int i = 0; i < guess.size(); ++i)
         {
             parameter(0+i*5) = guess(i);
