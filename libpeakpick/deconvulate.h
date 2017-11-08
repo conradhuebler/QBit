@@ -91,10 +91,16 @@ namespace PeakPick{
         inline int operator()(const Eigen::VectorXd &parameter, Eigen::VectorXd &fvec) const
         {
             int j = 0;
+            double err = 0;
+//             for(int i = 0; i < guess.size(); ++i)
+            {
+//                 err += (guess(i)-parameter(0+i*5))*(guess(i)-parameter(0+i*5));
+//                 std::cout << err << " " << guess(i) << " " << parameter(0+i*5) << std::endl;
+            }
             for(int i = start; i <= end; ++i)
             {
                 double x = spec->X(i);
-                fvec(j) =  Signal(x, parameter, functions, ratio) - spec->Y(i);
+                fvec(j) =  Signal(x, parameter, functions, ratio) - spec->Y(i) + err;
                 ++j;
             }
             return 0;
@@ -104,6 +110,7 @@ namespace PeakPick{
         int start, end;
         int functions;
         const spectrum *spec;
+        Vector guess;
         int inputs() const { return no_parameter; } 
         int values() const { return no_points; } 
         double ratio;
@@ -112,15 +119,15 @@ namespace PeakPick{
     struct MyFunctorNumericalDiff : Eigen::NumericalDiff<MyFunctor> {};
     
     
-    Vector Deconvulate(const spectrum *spec, const Peak &peak, double ratio, const Vector &guess)
+    Vector Deconvulate(const spectrum *spec, double start, double end, double ratio, const Vector &guess)
     {
-        MyFunctor functor(5, peak.end-peak.start+1);
-        functor.start = peak.start;
-        functor.end = peak.end;
+        MyFunctor functor(5*guess.size(), end-start+1);
+        functor.start = start;
+        functor.end = end;
         functor.spec = spec;
         functor.ratio = ratio;
         functor.functions = guess.size(); 
-
+        functor.guess = guess;
         Vector parameter(5*guess.size());
         for(int i = 0; i < guess.size(); ++i)
         {
