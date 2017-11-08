@@ -111,17 +111,23 @@ public:
     
     virtual void run() override;
     
-    PeakPick::spectrum *Data() const { return spectrum; }
+    const PeakPick::spectrum *Data() const { return m_spectrum; }
+    void setData(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
     QString Name() const { return m_name; }
     int Position() const { return m_position; }
-    PeakPick::spectrum *spectrum;
+    
+    void setGLRatio( double ratio) { m_ratio = ratio; }
+    
+    
     PeakPick::Peak peak;
     Vector parameter, guess; 
-    int functions, m_position;
+    int m_position;
+    
     
 private:
     QString m_name;
-
+    double m_ratio;
+    const PeakPick::spectrum *m_spectrum;
 };
 
 class MultiSpecWidget : public QWidget
@@ -140,7 +146,7 @@ public slots:
     
 private:
     QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate;
-    QSpinBox *m_functions;
+    QDoubleSpinBox *m_ratio;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
     QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit; 

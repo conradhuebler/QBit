@@ -32,7 +32,7 @@
 
 void FitThread::run()
 {
-    parameter = PeakPick::Deconvulate(spectrum, peak, functions, guess);
+    parameter = PeakPick::Deconvulate(Data(), peak, m_ratio, guess);
 }
 
 
@@ -59,6 +59,16 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     connect(m_deconvulate, SIGNAL(clicked()), this, SLOT(Deconvulate()));
     toolbar->addWidget(m_deconvulate);
 
+    m_ratio = new QDoubleSpinBox;
+    m_ratio->setMinimum(0);
+    m_ratio->setMaximum(1);
+    m_ratio->setDecimals(3);
+    m_ratio->setValue(0.9);
+    m_ratio->setSingleStep(0.05);
+    
+    toolbar->addWidget(new QLabel(tr("Lorentzian")));
+    toolbar->addWidget(m_ratio);
+    
     layout->addLayout(toolbar, 0, 0);
     
     toolbar = new QHBoxLayout;
@@ -115,7 +125,7 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     m_chartview->setYAxis("Intensity");
         
     FitThread *fit = new FitThread(spectrum->Name(), m_spectra.size() - 1);
-    fit->spectrum = m_spectra[m_spectra.size() - 1]->Raw();
+    fit->setData( m_spectra[m_spectra.size() - 1]->Raw() );
     m_fit_threads << fit;
     m_files++;
 }
@@ -231,8 +241,8 @@ void MultiSpecWidget::Deconvulate()
             guess(0) = peak.max;
             thread->guess = guess;
             thread->peak = peak;
-            thread->functions = 1;
-            thread->spectrum = m_spectra[i]->Raw();
+            thread->setData( m_spectra[i]->Raw() );
+            thread->setGLRatio(m_ratio->value());
            QThreadPool::globalInstance()->start(thread);
            threads << thread;
         }
@@ -246,7 +256,7 @@ void MultiSpecWidget::Deconvulate()
 void MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
 {
     QString result, last_row;
-    
+    result = "Name\t\tPosition\ta\tc\tgamma\tscale\n";
     for(int work = 0; work < threads.size(); ++work)
     {
         
@@ -294,8 +304,6 @@ void MultiSpecWidget::FitSingle()
     m_select->hide();
     qDeleteAll(m_fit);
     m_fit.clear();
-    QString result, last_row;
-    result = "Name\t\tPosition\ta\tc\tgamma\tscale\n";
     QString value_input = m_select->PeakList();
     std::vector<double> entries;
     if (!value_input.isEmpty())
@@ -335,7 +343,7 @@ void MultiSpecWidget::FitSingle()
         }
         m_fit_threads[work]->guess = guess;
         m_fit_threads[work]->peak = peak;
-        m_fit_threads[work]->functions = 1;
+        m_fit_threads[work]->setGLRatio(m_ratio->value());
         QThreadPool::globalInstance()->start(m_fit_threads[work]);
     }
     QThreadPool::globalInstance()->waitForDone();
@@ -383,9 +391,9 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     
     Vector guess(1);
     guess(0) = (max+min)/2.0;
-    Vector parameter = PeakPick::Deconvulate(m_spectra[0]->Raw(), peak, 1, guess);
+    Vector parameter = PeakPick::Deconvulate(m_spectra[0]->Raw(), peak, m_ratio->value(), guess);
     QString result, last_row;
-    
+    result = "Name\t\tPosition\ta\tc\tgamma\tscale\n";
     for(int i = 0; i < guess.size(); ++i)
             result += m_spectra[0]->Name() + "\t" + QString::number(parameter(0+i*5)) + "\t" + QString::number(parameter(1+i*5)) + "\t" + QString::number(parameter(2+i*5)) + "\t" + QString::number(parameter(3+i*5)) + "\t" + QString::number(parameter(4+i*5)) + "\n";
         for(int i = 0; i < guess.size(); ++i)

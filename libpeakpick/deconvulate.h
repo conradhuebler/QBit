@@ -34,7 +34,6 @@
 typedef Eigen::VectorXd Vector;
 
 static double pi = 3.14159265;
-static double val = 0.9;
 
 namespace PeakPick{
     
@@ -48,14 +47,14 @@ namespace PeakPick{
         return 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2));
     }
     
-    inline double Signal(double x, Vector parameter, int functions)
+    inline double Signal(double x, Vector parameter, int functions, double ratio = 0.9)
     {
         double signal = 0;
         for(int i = 0; i < functions; ++i)
         {
             double gaussian = Gaussian(x, parameter(1+i*5), parameter(0+i*5), parameter(2+i*5));
             double lorentzian = Lorentzian(x, parameter(0+i*5), parameter(3+i*5));
-            signal += ((1-val)*gaussian + val*lorentzian)*parameter(4+i*5);
+            signal += ((1-ratio)*gaussian + ratio*lorentzian)*parameter(4+i*5);
         }
         return signal;
     }
@@ -95,7 +94,7 @@ namespace PeakPick{
             for(int i = start; i <= end; ++i)
             {
                 double x = spec->X(i);
-                fvec(j) =  Signal(x, parameter, functions) - spec->Y(i);
+                fvec(j) =  Signal(x, parameter, functions, ratio) - spec->Y(i);
                 ++j;
             }
             return 0;
@@ -104,26 +103,25 @@ namespace PeakPick{
         int no_points;
         int start, end;
         int functions;
-        spectrum *spec;
+        const spectrum *spec;
         int inputs() const { return no_parameter; } 
         int values() const { return no_points; } 
+        double ratio;
     };
     
     struct MyFunctorNumericalDiff : Eigen::NumericalDiff<MyFunctor> {};
     
     
-    Vector Deconvulate(spectrum *spec, const Peak &peak, int functions, const Vector &guess)
+    Vector Deconvulate(const spectrum *spec, const Peak &peak, double ratio, const Vector &guess)
     {
         MyFunctor functor(5, peak.end-peak.start+1);
         functor.start = peak.start;
         functor.end = peak.end;
         functor.spec = spec;
+        functor.ratio = ratio;
         functor.functions = guess.size(); 
-        double start = spec->X(peak.start);
-        double end = spec->X(peak.end);
 
         Vector parameter(5*guess.size());
-        double step = (end - start)/double(functions+1);
         for(int i = 0; i < guess.size(); ++i)
         {
             parameter(0+i*5) = guess(i);
@@ -132,6 +130,7 @@ namespace PeakPick{
             parameter(3+i*5) = 1/double(50);
             parameter(4+i*5) = 1/double(30);
         }
+        
         Eigen::NumericalDiff<MyFunctor> numDiff(functor);
         Eigen::LevenbergMarquardt<Eigen::NumericalDiff<MyFunctor> > lm(numDiff);
         Eigen::LevenbergMarquardtSpace::Status status = lm.minimizeInit(parameter);
