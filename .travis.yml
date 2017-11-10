@@ -12,7 +12,7 @@ before_install:
 before_script:
   - mkdir build
   - cd build
-  - ../travis/install_charts.sh
+  - sh ../travis/install_charts.sh
   - cmake .. -DQt5Charts_DIR=qtcharts/lib/cmake/Qt5Charts/
 
 script: make
