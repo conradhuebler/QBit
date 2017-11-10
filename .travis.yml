@@ -6,14 +6,14 @@ compiler: gcc
 before_install:
  - sudo add-apt-repository -y ppa:beineri/opt-qt591-trusty
  - sudo apt-get update -qq
- - sudo apt-get install qtbase5-dev qtdeclarative5-dev libqt5webkit5-dev libsqlite3-dev
- - sudo apt-get install qt5-default qttools5-dev-tools
+ - sudo apt-get install qt59-meta-full
+ - sudo apt-get install qt59charts-no-lgpl 
  
 before_script:
   - source /opt/qt59/bin/qt59-env.sh
   - mkdir build
   - cd build
   - sh ../travis/install_charts.sh
-  - cmake .. -DQt5Charts_DIR=qtcharts/lib/cmake/Qt5Charts/
+  - cmake .. 
 
 script: make
