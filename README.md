@@ -1,5 +1,6 @@
-# QBit 
+[![Build Status](https://travis-ci.org/contra98/QBit.svg?branch=master)](https://travis-ci.org/contra98/QBit)
 
+# QBit 
 A Open Source Qt5 based spectra viewing tool (mainly NMR).
 
 ## Download and requirements
@@ -31,12 +32,12 @@ Load NMR spectrum, either exported as txt file via TopSpin or open directly 1r f
 
 ### Display and Zoom
 
-Spectra can be zoom using the left mouse button (`click, drag and drop`), the zoom can be reseted clicking the middle mouse button. The triggering the mouse while scales the curves.
+Spectra can be zoom using the left mouse button (`click, drag and drop`), the zoom can be reseted clicking the middle mouse button. Turn the mouse wheele scales the spectra.
 
 ### Fitting peaks
 
 Simple peak fitting can be done **Fit Single Peak**, an apropriate zoom is recommended. Double click on the desired peak adds it to the list, multiple selection are possible. 
 
-Multiple peaks can be fitted, if **pick peaks* is done prior to **Deconvulate**, but it leads for now to unsatisfactory fits.
+Multiple peaks can be fitted, if **pick peaks* is done prior to **Deconvulate**. Please keep in mind, that all visible peaks will be fitted. You can zoom in to exclude peaks.
 
 A third possibility is drawing an recangle via double right click around the desired peak.
