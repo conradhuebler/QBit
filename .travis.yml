@@ -17,7 +17,7 @@ matrix:
       compiler: clang
       addons: &clang4
         apt:
-          sources: ['llvm-toolchain-precise-4.0', 'ubuntu-toolchain-r-test']
+          sources: ['llvm-toolchain-trusty-4.0', 'ubuntu-toolchain-r-test']
           packages: ['clang-4.0']
         env: COMPILER='clang++-4.0'
  
