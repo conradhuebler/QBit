@@ -1,15 +1,17 @@
-matrix:
-  # MSVC x64
-  - name: win64
-    platform: amd64
-    qt: 5.9\msvc2015_64
-    suffix: msvc2015
+environment:
+
+    matrix:
+    # MSVC x64
+        - name: win64
+        - platform: amd64
+        - qt: 5.9\msvc2015_64
+        - suffix: msvc2015
 
   # MinGW
-  - name: win32
-    platform: mingw
-    qt: 5.9\mingw53_32
-    suffix: mingw
+        - name: win32
+        - platform: mingw
+        - qt: 5.9\mingw53_32
+        - suffix: mingw
     
     
 init:
