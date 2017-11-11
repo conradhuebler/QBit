@@ -7,7 +7,7 @@ git submodule update --init --recursive
 git pull --recurse-submodules
 mkdir build
 cd build
-cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=C:\MinGW -DCMAKE_BUILD_TYPE=Release ..
+cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1 -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 
 echo Running tests...
