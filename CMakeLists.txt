@@ -37,7 +37,7 @@ add_definitions("-DGIT_COMMIT_DATE=${GIT_COMMIT_DATE}")
 # generate proper GUI program on specified platform
 if(WIN32) # Check if we are on Windows
 	if(MSVC) # Check if we are using the Visual Studio compiler
-		set_target_properties(${PROJECT_NAME} PROPERTIES
+		set_target_properties(QBit PROPERTIES
 			WIN32_EXECUTABLE YES
 			LINK_FLAGS "/ENTRY:mainCRTStartup"
 		)
@@ -47,7 +47,7 @@ if(WIN32) # Check if we are on Windows
 		message(SEND_ERROR "You are using an unsupported Windows compiler! (Not MSVC or GCC)")
 	endif(MSVC)
 elseif(APPLE)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
+	set_target_properties(QBit PROPERTIES
 			MACOSX_BUNDLE YES
 	)
 elseif(UNIX)
