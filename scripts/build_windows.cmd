@@ -6,9 +6,8 @@ echo Building QBit...
 
 mkdir build
 cd build
-cmake .. -G %makefiles% -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="c:/dev/install"
-if not %platform%==mingw (nmake) else (mingw32-make)
-if not %platform%==mingw (nmake install) else (mingw32-make install)
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build .
 
 echo Running tests...
 
