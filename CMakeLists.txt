@@ -107,14 +107,14 @@ set(qbit_gui
                 src/gui/qbit.cpp
                 src/main.cpp)
 
-add_executable(qbit ${qbit_gui})
-qt5_use_modules(qbit Widgets Charts)
+add_executable(QBit ${qbit_gui})
+qt5_use_modules(QBit Widgets Charts)
 
-set_property(TARGET qbit PROPERTY CXX_STANDARD 14)
-target_link_libraries(qbit ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+set_property(TARGET QBit PROPERTY CXX_STANDARD 14)
+target_link_libraries(QBit ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 
 if(UNIX)
-    target_link_libraries(qbit pthread dl )
+    target_link_libraries(QBit pthread dl )
 endif(UNIX)
 
-install(TARGETS qbit RUNTIME DESTINATION bin)
+install(TARGETS QBit RUNTIME DESTINATION bin)
