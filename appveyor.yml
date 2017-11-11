@@ -1,6 +1,6 @@
 environment:
-  QBit_RELEASE_PATH: .
-  - Qt: C:\Qt\5.9.1\msvc2017_64
+  matrix:
+  - Qt5: C:\Qt\5.9.1\msvc2017_64
     PLATFORM: amd64
     COMPILER: msvc
     VSVER: 14

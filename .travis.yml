@@ -9,17 +9,15 @@ matrix:
         apt:
             sources: ['ubuntu-toolchain-r-test']
             packages: ['g++-6']
-      env: COMPILER='g++-6'
+      env: COMPILER='g++'
         
-
-        
-    - os: linux
-      compiler: clang
-      addons: &clang4
-        apt:
-          sources: ['llvm-toolchain-trusty-4.0', 'ubuntu-toolchain-r-test']
-          packages: ['clang-4.0']
-        env: COMPILER='clang++-4.0'
+    #- os: linux
+      #compiler: clang
+      #addons: &clang4
+        #apt:
+          #sources: ['llvm-toolchain-trusty-5.0', 'ubuntu-toolchain-r-test']
+          #packages: ['clang-5.0']
+        #env: COMPILER='clang++'
  
           
           
