@@ -34,4 +34,4 @@ before_script:
     - source /opt/qt59/bin/qt59-env.sh
     - export CXX=${COMPILER}
 
-script: scripts/build_unix.sh
+script: sh scripts/build_unix.sh
