@@ -3,7 +3,8 @@ echo on
 SET project_dir="%cd%"
 
 echo Building QBit...
-
+git submodule update --init --recursive
+git pull --recurse-submodules
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
