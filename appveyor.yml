@@ -1,4 +1,5 @@
 environment:
+matrix:
   # MSVC x64
   - name: win64
     platform: amd64
