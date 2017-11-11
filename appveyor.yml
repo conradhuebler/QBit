@@ -1,24 +1,24 @@
-image: Visual Studio 2015
+image: MinGW
 
 environment:
   matrix:
-  - qt: C:\Qt\5.9\msvc2015_64
-    PLATFORM: amd64
-    COMPILER: msvc
-    VSVER: 14
+  - qt: C:\Qt\5.9\mingw53_32\bin
+    PLATFORM: i586
+    COMPILER: mingw
     
     
 clone_depth: 1
 
 init:
   - set TAG_NAME=%APPVEYOR_REPO_TAG_NAME%
-  - set PATH=%qt%;%PATH%
-  
+  - set PATH=C:\Qt\5.9\mingw53_32\bin;%PATH%
+  - set PATH=C:\Qt\Tools\mingw530_32\bin;%PATH%
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
 build_script:
   - call "scripts/build_windows.cmd"
 
 artifacts:
-  - path: build\windows\msvc\x86_64\release\YourApp_$(appveyor_repo_tag_name)_windows_x86_64_portable.zip
+  - path: build\QBit_$(appveyor_repo_tag_name)_windows.zip
     name: portable
 
 
