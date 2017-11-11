@@ -28,6 +28,7 @@ before_script:
   - source /opt/qt59/bin/qt59-env.sh
   - mkdir build
   - cd build
+  - export CXX="g++-6" CC="gcc-6"
   - cmake .. 
 
 script: make
