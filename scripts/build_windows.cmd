@@ -8,7 +8,7 @@ git pull --recurse-submodules
 mkdir build
 cd build
 cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=C:\MinGW -DCMAKE_BUILD_TYPE=Release ..
-cmake --build
+cmake --build .
 
 echo Running tests...
 
