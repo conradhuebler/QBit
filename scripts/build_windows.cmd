@@ -7,8 +7,8 @@ git submodule update --init --recursive
 git pull --recurse-submodules
 mkdir build
 cd build
-cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=C:\MinGW -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
+cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+cmake --build . --config Release
 
 
 echo Packaging...
@@ -17,6 +17,7 @@ mkdir QBit
 copy QBit.exe QBit
 cd QBit
 windeployqt QBit.exe
+copy C:\Qt\Tools\mingw530_32\bin\libgomp-1.dll  "%project_dir%\build\QBit\libgomp-1.dll
 
 echo Copying project files for archival...
 copy "%project_dir%\README.md" "%project_dir%\build\QBit\README.md"

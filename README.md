@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/contra98/QBit.svg?branch=master)](https://travis-ci.org/contra98/QBit)
+[![Build Status](https://travis-ci.org/contra98/QBit.svg?branch=master)](https://travis-ci.org/contra98/QBit) [![Build status](https://ci.appveyor.com/api/projects/status/lma7hd13mktg6o45?svg=true)](https://ci.appveyor.com/project/contra98/qbit)
+
 
 # QBit 
 A Open Source Qt5 based spectra viewing tool (mainly NMR).

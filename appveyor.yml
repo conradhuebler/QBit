@@ -10,7 +10,7 @@ environment:
 clone_depth: 1
 
 init:
-  - set TAG_NAME=%APPVEYOR_REPO_TAG_NAME%
+  - set TAG_NAME=%appveyor_build_version%
   - set PATH=C:\Qt\5.9\mingw53_32\bin;%PATH%
   - set PATH=C:\Qt\Tools\mingw530_32\bin;%PATH%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
@@ -18,15 +18,15 @@ build_script:
   - call "scripts/build_windows.cmd"
 
 artifacts:
-  - path: build\QBit_$(appveyor_repo_tag_name)_windows.zip
+  - path: build\QBit_$(appveyor_build_version)_windows.zip
     name: portable
 
 
 deploy:
 - provider: GitHub
-  tag: $(appveyor_repo_tag_name)
-  release: $(appveyor_repo_tag_name)
-  description: $(appveyor_repo_tag_name)
+  tag: $(appveyor_build_version)
+  release: $(appveyor_build_version)
+  description: $(appveyor_build_version)
   auth_token:
     secure: lNrwOGAylXafSwJAAwEbYBFGbpGjy7aYSCyAWl9jikP22ykJ1BqwKPKhKjo+f1JT
   prerelease: true
