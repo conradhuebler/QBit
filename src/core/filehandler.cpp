@@ -134,7 +134,7 @@ bool SpectrumLoader::loadNMRFile()
     
     original = PeakPick::spectrum(y,-1*min,-1*max); 
     
-    QStringList path_list  = m_path.split(QDir::separator());
+    QStringList path_list  = m_path.split("/");
     
     m_basename = path_list[path_list.size() - 4];
     return true;
@@ -148,7 +148,7 @@ bool SpectrumLoader::loadFidFile()
         return false;
     original = PeakPick::spectrum(y,0,y.size()); 
     
-    QStringList path_list  = m_path.split(QDir::separator());
+    QStringList path_list  = m_path.split("/");
     
     m_basename = path_list[path_list.size() - 2];
     return true;

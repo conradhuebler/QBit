@@ -43,6 +43,10 @@ public:
     }
 
     inline spectrum() { }
+    
+    inline spectrum(const spectrum *other) { m_y = other->m_y; m_min = other->m_min;  m_max = other->m_max; Analyse();}
+    inline spectrum(const spectrum &other) { m_y = other.m_y; m_min = other.m_min;  m_max = other.m_max; Analyse();  }
+
     inline ~spectrum() { }
     
     inline void setSpectrum(const Vector &y, double min, double max)
@@ -134,6 +138,9 @@ public:
         for(int i = start; i < end; ++i)
             setY(i, 0);
     }
+    
+    inline spectrum *operator=(const spectrum *other) { m_y = other->m_y; m_min = other->m_min;  m_max = other->m_max; Analyse(); return this; }
+    inline spectrum &operator=(const spectrum &other) { m_y = other.m_y; m_min = other.m_min;  m_max = other.m_max; Analyse();  return *this; }
 
 private:
     Vector m_y;

@@ -81,7 +81,6 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     
     m_select = new SelectGuess;
     
-    connect(m_chartview, SIGNAL(ZoomChanged()), this, SLOT(UpdateRange()));
     connect(m_chartview, SIGNAL(ZoomChanged()), this, SLOT(ResetZoomLevel()));
     connect(m_chartview, SIGNAL(scaleDown()), this, SLOT(scaleDown()));
     connect(m_chartview, SIGNAL(scaleUp()), this, SLOT(scaleUp()));

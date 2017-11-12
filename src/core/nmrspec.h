@@ -27,6 +27,8 @@ class NMRSpec
     
 public:
     NMRSpec(const QString &name, const PeakPick::spectrum &raw, const PeakPick::spectrum &data, bool nmr);
+    NMRSpec(const NMRSpec *other);
+    NMRSpec(const NMRSpec &other);
     ~NMRSpec();
     
     PeakPick::spectrum * Raw() { return m_raw; }
@@ -37,6 +39,8 @@ public:
     QString Path() const { return m_path; }
     void setPath(const QString &path) { m_path = path; }
     bool isNMR() const { return m_nmr; }
+    inline NMRSpec *operator=(const NMRSpec *other);
+    inline NMRSpec &operator=(const NMRSpec &other);
 private:
     QString m_name, m_path;
     PeakPick::spectrum *m_raw, *m_data, *m_fid;

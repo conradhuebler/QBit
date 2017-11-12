@@ -25,16 +25,47 @@
 
 NMRSpec::NMRSpec(const QString &name, const PeakPick::spectrum &data, const PeakPick::spectrum &raw, bool nmr) : m_name(name), m_data(new PeakPick::spectrum(data)), m_raw(new PeakPick::spectrum(raw)), m_nmr(nmr)
 {
-    
-    
-    
-    
+//     std::cout << "Initialize data spectrum with " << Data()->size() << " from " << data.size() << std::endl;
+//     std::cout << "Initialize raw spectrum with " << Raw()->size() << " from " << raw.size() << std::endl;
 }
 
+NMRSpec::NMRSpec(const NMRSpec& other)
+{
+     m_name = other.m_name;
+     m_data = new PeakPick::spectrum(other.m_data);
+     m_raw = new PeakPick::spectrum(other.m_raw);
+     m_nmr = other.m_nmr;
+}
+
+NMRSpec::NMRSpec(const NMRSpec* other)
+{
+     m_name = other->m_name;
+     m_data = new PeakPick::spectrum(other->m_data);
+     m_raw = new PeakPick::spectrum(other->m_raw);
+     m_nmr = other->m_nmr ;
+}
 
 
 NMRSpec::~NMRSpec()
 {
     delete m_raw;
     delete m_data;
+}
+
+NMRSpec &NMRSpec::operator=(const NMRSpec& other)
+{
+     m_name = other.m_name;
+     m_data = new PeakPick::spectrum(other.m_data);
+     m_raw = new PeakPick::spectrum(other.m_raw);
+     m_nmr = other.m_nmr;
+     return *this;
+}
+
+NMRSpec *NMRSpec::operator=(const NMRSpec* other)
+{
+     m_name = other->m_name;
+     m_data = new PeakPick::spectrum(other->m_data);
+     m_raw = new PeakPick::spectrum(other->m_raw);
+     m_nmr = other->m_nmr;
+     return this;
 }
