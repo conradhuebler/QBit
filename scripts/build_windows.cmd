@@ -7,18 +7,21 @@ git submodule update --init --recursive
 git pull --recurse-submodules
 mkdir build
 cd build
-cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1 -DCMAKE_BUILD_TYPE=Release ..
+cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH=C:\MinGW -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 
-echo Running tests...
 
 echo Packaging...
 cd %project_dir%\build
+mkdir QBit
+copy QBit.exe QBit
+cd QBit
 windeployqt QBit.exe
 
 echo Copying project files for archival...
-copy "%project_dir%\README.md" "QBit\README.md"
-copy "%project_dir%\LICENSE" "QBit\LICENSE.txt"
+copy "%project_dir%\README.md" "%project_dir%\build\QBit\README.md"
+copy "%project_dir%\LICENSE.md" "%project_dir%\build\QBit\LICENSE.md"
 
 echo Packaging portable archive...
+cd ..
 7z a QBit_%TAG_NAME%_windows.zip QBit

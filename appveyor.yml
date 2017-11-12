@@ -12,7 +12,7 @@ clone_depth: 1
 init:
   - set TAG_NAME=%APPVEYOR_REPO_TAG_NAME%
   - set PATH=C:\Qt\5.9\mingw53_32\bin;%PATH%
-  - set PATH=C:\mingw-w64\i686-6.3.0-posix-dwarf-rt_v5-rev1;C:\Qt\Tools\mingw530_32\bin;%PATH%
+  - set PATH=C:\Qt\Tools\mingw530_32\bin;%PATH%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
 build_script:
   - call "scripts/build_windows.cmd"

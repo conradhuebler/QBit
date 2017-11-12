@@ -27,7 +27,7 @@
 #include <iostream>
 #include <vector>
 
-#include "math.h"
+#include "mathhelper.h"
 
 typedef Eigen::VectorXd Vector;
 
