@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/contra98/QBit.svg?branch=master)](https://travis-ci.org/contra98/QBit) [![Build status](https://ci.appveyor.com/api/projects/status/lma7hd13mktg6o45?svg=true)](https://ci.appveyor.com/project/contra98/qbit)
+Linux Build via Travis-CI: [![Build Status](https://travis-ci.org/contra98/QBit.svg?branch=master)](https://travis-ci.org/contra98/QBit) Windows Build via Appveyor-CI [![Build status](https://ci.appveyor.com/api/projects/status/lma7hd13mktg6o45?svg=true)](https://ci.appveyor.com/project/contra98/qbit)
 
 
 # QBit 
@@ -11,7 +11,13 @@ git clones automatically Eigen. Eigen is used as non-linear optimimization tool.
 To compile QBit you will need CMake 3 or newer and a C++14-capable compiler.
 
 QBit has been successfully compilied with: 
-- gcc 6.3
+- GCC 6.3 
+- Clang 4.0
+
+on Linux systems and with
+- MinGW 5.3
+
+on Windows systems.
 
 > Windows 7 or higher is recommended if Qt is compilied without ICU support.
 
