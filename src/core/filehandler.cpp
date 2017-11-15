@@ -17,7 +17,8 @@
  * 
  */
 
-
+#include "kissfft/kiss_fft.h"
+#include <complex>
 #include <vector>
 #include <fstream>
 #include <string>
@@ -146,11 +147,47 @@ bool SpectrumLoader::loadFidFile()
     Vector y = BinFile2Vector(m_filename);
     if(y.size() == 0)
         return false;
-    original = PeakPick::spectrum(y,0,y.size()); 
+    
+    const int nfft=y.size();
+    kiss_fft_cfg fwd = kiss_fft_alloc(nfft,0,NULL,NULL);
+    kiss_fft_cfg inv = kiss_fft_alloc(nfft,1,NULL,NULL);
+
+    
+    std::vector<std::complex<float>> x(nfft, 0.0);
+    std::vector<std::complex<float>> fx(nfft, 0.0);
+
+    double size = y.size();
+    for(int i = 0; i < y.size(); ++i)
+    {
+        x[i] = y(i)/size;
+    }
+    kiss_fft(fwd,(kiss_fft_cpx*)&x[0],(kiss_fft_cpx*)&fx[0]);
+    
+    std::vector<double > spec;
+
+    for (int k=0;k<nfft;++k) 
+    {
+         fx[k] = fx[k] * conj(fx[k]);
+         fx[k] *= 1./nfft;
+    }
+    
+
+    
+     for (int i = 0; i < fx.size()/2; i++)
+     {
+         float re = fx[i].real();
+         spec.push_back( re );
+     }
+    Vector spec2 = Vector::Map(&spec[0], nfft); 
+    original = PeakPick::spectrum(spec2,0,spec2.size()); 
     
     QStringList path_list  = m_path.split("/");
     
     m_basename = path_list[path_list.size() - 2];
+
+    kiss_fft_free(fwd);
+    kiss_fft_free(inv);
+
     return true;
 }
 
@@ -227,6 +264,8 @@ void SpectrumLoader::run()
         m_load = loadFidFile();
     else if(m_filename.contains("dpt"))
         m_load = loadDptFile();
+    else if(m_filename.contains("SPA"))
+        m_load = loadFidFile();
     if(m_load)
     {
         spectrum = PeakPick::spectrum(original);

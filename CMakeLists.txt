@@ -77,6 +77,7 @@ include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} eigen/ libpeakpic
 
 
 set(qbit_gui 
+                kissfft/kiss_fft.c
                 src/core/nmrspec.cpp
                 src/core/filehandler.cpp
                 src/gui/dialogs/selectguess.cpp

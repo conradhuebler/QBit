@@ -119,7 +119,7 @@ void QBit::LoadFile()
 {
     QStringList fileName = QFileDialog::getOpenFileNames(this, tr("Open File"),
                                                 QDir::homePath(),
-                                                tr("Files (*.dat *.txt *.spec fid 1r *.dpt)"));
+                                                tr("Files (*.dat *.txt *.spec fid 1r *.dpt *SPA)"));
     LoadFiles(fileName);
 }
 
