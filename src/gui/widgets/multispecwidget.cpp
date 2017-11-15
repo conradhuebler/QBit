@@ -144,6 +144,8 @@ void MultiSpecWidget::clear()
     m_spectra.clear();
     m_files = 0;
     qDeleteAll(m_texts);
+    m_xmin = 0;
+    m_xmax = 0;
 }
 
 void MultiSpecWidget::ResetZoomLevel()
