@@ -75,11 +75,17 @@ find_package(Qt5Charts REQUIRED)
 
 include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} eigen/ libpeakpick/)
 
-
-set(qbit_gui 
+set(qbit_core_SRC
                 kissfft/kiss_fft.c
                 src/core/nmrspec.cpp
                 src/core/filehandler.cpp
+                src/func/fit_threaded.cpp
+)
+
+add_library(qbit_core STATIC ${qbit_core_SRC})
+qt5_use_modules(qbit_core Core Gui)
+
+set(qbit_gui 
                 src/gui/dialogs/selectguess.cpp
                 src/gui/widgets/chartview.cpp
                 src/gui/widgets/multispecwidget.cpp
@@ -114,7 +120,7 @@ else()
 	message(SEND_ERROR "You are on an unsupported platform! (Not Win32, Mac OS X or Unix)")
 endif(WIN32)
 
-target_link_libraries(QBit ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+target_link_libraries(QBit qbit_core ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 
 if(UNIX)
     target_link_libraries(QBit pthread dl )

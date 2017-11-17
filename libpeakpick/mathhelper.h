@@ -27,6 +27,7 @@
 #include <vector>
 
 typedef Eigen::VectorXd Vector;
+static double pi = 3.14159265;
 
 namespace PeakPick{
 
@@ -134,5 +135,27 @@ namespace PeakPick{
         return sqrt(sum/double(vector.size()));
     }
 
+        
+    inline double Gaussian(double x, double a, double x_0, double c)
+    {
+        return 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)));
+    }
+    
+    inline double Lorentzian(double x, double x_0, double gamma)
+    {
+        return 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2));
+    }
+    
+    inline double Signal(double x, Vector parameter, int functions, double ratio = 0.9)
+    {
+        double signal = 0;
+        for(int i = 0; i < functions; ++i)
+        {
+            double gaussian = Gaussian(x, parameter(1+i*5), parameter(0+i*5), parameter(2+i*5));
+            double lorentzian = Lorentzian(x, parameter(0+i*5), parameter(3+i*5));
+            signal += ((1-ratio)*gaussian + ratio*lorentzian)*parameter(4+i*5);
+        }
+        return signal;
+    }
 }
 

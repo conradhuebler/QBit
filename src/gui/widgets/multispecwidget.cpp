@@ -18,7 +18,8 @@
 
 #include <libpeakpick/spectrum.h>
 #include <libpeakpick/analyse.h>
-#include <libpeakpick/deconvulate.h>
+#include <libpeakpick/mathhelper.h>
+
 
 #include <QtCore/QThreadPool>
 #include <QtWidgets/QGridLayout>
@@ -26,14 +27,11 @@
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QtCharts>
 
+#include "src/func/fit_threaded.h"
+
 #include "chartview.h"
 #include "src/gui/dialogs/selectguess.h"
 #include "multispecwidget.h"
-
-void FitThread::run()
-{
-    m_parameter = PeakPick::Deconvulate(Data(), m_start, m_end, m_ratio, m_guess);
-}
 
 
 MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0), m_scale(2), m_first_zoom(false), m_scale_jobs(0)
@@ -399,6 +397,7 @@ void MultiSpecWidget::scaleDown()
 
 void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
 {    
+    /*
     double min = point1.x();
     double max = point2.x();
     PeakPick::Peak  peak;
@@ -450,7 +449,7 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     text->show();
     m_texts << text;
     std::cout << result.toStdString() << std::endl;
-    
+    */
     /* 
               qDebug() << m_spectra[0]->PosOfPoint(min) << m_spectra[0]->PosOfPoint(max); 
               qDebug() << min << m_spectra[0]->X(m_spectra[0]->PosOfPoint(min)) << max << m_spectra[0]->X(m_spectra[0]->PosOfPoint(max)); 

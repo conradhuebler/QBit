@@ -154,7 +154,7 @@ bool SpectrumLoader::loadFidFile()
 
     
     std::vector<std::complex<float>> x(nfft, 0.0);
-    std::vector<std::complex<float>> fx(nfft, 0.0);
+    std::vector<std::complex<float>> fx(nfft/2, 0.0);
 
     double size = y.size();
     for(int i = 0; i < y.size(); ++i)

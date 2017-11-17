@@ -17,6 +17,8 @@
  * 
  */
 
+#pragma once
+
 #include <iostream>
 #include <fstream>
 
@@ -24,8 +26,6 @@
 #include "analyse.h"
 #include "spectrum.h"
 
-#ifndef peakpick_h
-#define peakpick_h
 
 inline PeakPick::spectrum loadFormFile(const std::string &filename, double min = 0, double max = 0)
 {
@@ -54,4 +54,3 @@ inline PeakPick::spectrum loadFormFile(const std::string &filename, double min =
     return PeakPick::spectrum(y,min,max); 
 }
 
-#endif
