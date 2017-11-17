@@ -399,59 +399,63 @@ void MultiSpecWidget::scaleDown()
 
 void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
 {    
-    /*
-    double min = point1.x();
-    double max = point2.x();
+    
+    double x_min = point1.x();
+    double y_min = qMin(point1.y(), point2.y());
+    double x_max = point2.x();
+    double y_max = qMax(point1.y(), point2.y());
+
     PeakPick::Peak  peak;
-    int start = 0, end = 0;
+    int start = 0, end = 0, work;
     double diff_min = 10, diff_max = 10;
-    for(int i = 0; i < m_spectra[0]->Data()->size(); ++i)
-    { 
-        double Xi = m_spectra[0]->Data()->X(i);
-        
-        double t_diff_min = qAbs(Xi-m_chartview->XMin());
-        double t_diff_max = qAbs(Xi-m_chartview->XMax());
-        
-        if( t_diff_min < diff_min)
-            start = i;
-        
-        if(t_diff_max < diff_max)
-            end = i;
-        
-        diff_min = t_diff_min;
-        diff_max = t_diff_max;
-    }
-    
-    Vector guess(1);
-    guess(0) = (max+min)/2.0;
-    Vector parameter = PeakPick::Deconvulate(m_spectra[0]->Raw(), start, end, m_ratio->value(), guess);
-    QString result, last_row;
-    result = "Name\t\tPosition\ta\tc\tgamma\tscale\n";
-    for(int i = 0; i < guess.size(); ++i)
-            result += m_spectra[0]->Name() + "\t" + QString::number(parameter(0+i*5)) + "\t" + QString::number(parameter(1+i*5)) + "\t" + QString::number(parameter(2+i*5)) + "\t" + QString::number(parameter(3+i*5)) + "\t" + QString::number(parameter(4+i*5)) + "\n";
-        for(int i = 0; i < guess.size(); ++i)
-            last_row += QString::number(parameter(0+i*5)) + " ";
-        
-    QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
-    
-    for(int i = peak.start; i <= peak.end; ++i)
+        bool inrange = false;    
+    for(work = 0; work < m_spectra.size() || !inrange; ++work)
     {
-        double x = m_spectra[0]->Data()->X(i);
-        double y = PeakPick::Signal(x, parameter, guess.size())*m_scale ;
-        if(y > m_spectra[0]->Data()->StdDev())
-            series->append(x, PeakPick::Signal(x, parameter, guess.size())*m_scale );
+
+        for(int i = 0; i < m_spectra[work]->Data()->size(); ++i)
+        { 
+            double Xi = m_spectra[work]->Data()->X(i);
+            if(Xi < x_min || Xi > x_max)
+                continue;
+            double Yi = m_spectra[work]->Raw()->Y(i);
+            
+//             std::cout << Xi << ": " << y_min << " " << Yi*m_scale+work << " " <<  y_max << std::endl;
+            if(Yi*m_scale+work > y_min && Yi*m_scale+work < y_max)
+            {
+                inrange = true;
+//                 std::cout << "got it ....." << std::endl;
+            }
+            double t_diff_min = qAbs(Xi-m_chartview->XMin());
+            double t_diff_max = qAbs(Xi-m_chartview->XMax());
+            
+            if( t_diff_min < diff_min)
+                start = i;
+            
+            if(t_diff_max < diff_max)
+                end = i;
+            
+            diff_min = t_diff_min;
+            diff_max = t_diff_max;
+        }
+        
+        if(inrange)
+            break;
     }
-    series->setName(QString::number(parameter(0)));
-    m_chartview->addSeries(series);
-    m_fit << series;
-     result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))\n";
-    result += "Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))\n";
-    QTextEdit *text = new QTextEdit;
-    text->setText(result + "\nOnly one column\n" + last_row);
-    text->show();
-    m_texts << text;
-    std::cout << result.toStdString() << std::endl;
-    */
+    
+    qDebug() << work << m_spectra.size();
+    Vector guess(1);
+    guess(0) = (x_max+x_min)/2.0;
+    FitThread *thread = new FitThread("name", work);
+    
+    thread->setData(m_spectra[work]->Raw());
+    thread->setGuess( guess );
+    thread->setRange( start, end );
+    thread->setGLRatio(m_ratio->value());
+    thread->run();
+    
+        AnalyseFitThreads( QVector<FitThread *>() << thread );
+    
+    delete thread;
     /* 
               qDebug() << m_spectra[0]->PosOfPoint(min) << m_spectra[0]->PosOfPoint(max); 
               qDebug() << min << m_spectra[0]->X(m_spectra[0]->PosOfPoint(min)) << max << m_spectra[0]->X(m_spectra[0]->PosOfPoint(max)); 
