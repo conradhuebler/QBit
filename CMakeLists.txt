@@ -87,6 +87,7 @@ qt5_use_modules(qbit_core Core Gui)
 
 set(qbit_gui 
                 src/gui/dialogs/selectguess.cpp
+                src/gui/dialogs/fitparameter.cpp
                 src/gui/widgets/chartview.cpp
                 src/gui/widgets/multispecwidget.cpp
                 src/gui/qbit.cpp

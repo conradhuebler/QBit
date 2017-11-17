@@ -16,23 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QThread>
-
-#include <libpeakpick/deconvulate.h>
+#pragma once
 #include <libpeakpick/spectrum.h>
+#include <libpeakpick/analyse.h>
 
-#include "fit_threaded.h"
+#include <QtWidgets/QDialog>
 
-void FitThread::run()
+class QTextEdit;
+
+class FitParameter : public QDialog
 {
-    m_result = PeakPick::Deconvulate(Data(), m_start, m_end, m_ratio, m_guess);
-}
+    Q_OBJECT
 
-FitThread::~FitThread()  { delete m_result; }
-
-
-
-Vector FitThread::Parameter() const { return m_result->parameter; }
-double FitThread::SumError() const { return m_result->sum_error; }
-double FitThread::SumSquared() const { return m_result->sum_squared; }
+public:
+    FitParameter(const QString &result, QWidget *parent);
+    ~FitParameter();
+    void setUi();
     
+private:
+    QTextEdit *m_parameter;
+    QString m_result;
+signals:
+
+};

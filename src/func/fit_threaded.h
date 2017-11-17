@@ -20,11 +20,13 @@
 
 #include <QtCore/QRunnable>
 
+struct FitResult;
+
 class FitThread : public QRunnable
 {
 public:
     inline FitThread(const QString &name, int position) : m_name(name), m_position(position) { setAutoDelete(false); }
-    
+    ~FitThread();
     virtual void run() override;
     
     const PeakPick::spectrum *Data() const { return m_spectrum; }
@@ -35,7 +37,9 @@ public:
     void setGLRatio( double ratio) { m_ratio = ratio; }
     void setGuess( const Vector &guess) { m_guess = guess; }
     Vector Guess() const { return m_guess; }
-    Vector Parameter() const { return m_parameter; }
+    Vector Parameter() const; // { return m_result->parameter; }
+    double SumError() const; // { return m_result->sum_error; }
+    double SumSquared() const; // { return m_result->sum_squared; }
     void setRange(double start, double end) { m_start = start; m_end = end; }
     
     int Start() const { return m_start; }
@@ -49,5 +53,6 @@ private:
     Vector m_parameter, m_guess; 
     int m_start, m_end;  
     int m_position;
+    FitResult *m_result;
 
 };

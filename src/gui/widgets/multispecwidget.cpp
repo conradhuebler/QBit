@@ -31,6 +31,7 @@
 
 #include "chartview.h"
 #include "src/gui/dialogs/selectguess.h"
+#include "src/gui/dialogs/fitparameter.h"
 #include "multispecwidget.h"
 
 
@@ -141,7 +142,6 @@ void MultiSpecWidget::clear()
     m_spectrum.clear();
     m_spectra.clear();
     m_files = 0;
-    qDeleteAll(m_texts);
     m_xmin = 0;
     m_xmax = 0;
 }
@@ -301,6 +301,9 @@ void MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
         for(int i = 0; i <  guess; ++i)
             last_row += QString::number(parameter(0+i*5)) + " ";
         last_row += "\n";
+        
+        result += "Sum of Errors = " + QString::number(threads[work]->SumError()) + "... Sum of Squares = " + QString::number(threads[work]->SumSquared()) + "\n";
+        
         QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
         
         for(int i = start; i <= end; ++i)
@@ -315,12 +318,11 @@ void MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
         
         m_fit << series;
     }
+    
     result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))\n";
     result += "Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))\n";
-    QTextEdit *text = new QTextEdit;
-    text->setText(result + "\nOnly one column\n" + last_row);
-    text->show();
-    m_texts << text;
+    FitParameter *fit = new FitParameter(result, this);
+    fit->show();
     std::cout << result.toStdString() << std::endl;
 }
 

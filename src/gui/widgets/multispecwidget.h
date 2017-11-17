@@ -138,7 +138,6 @@ private:
     bool m_first_zoom;
     SelectGuess *m_select;
     void AnalyseFitThreads(const QVector<FitThread *> &threads);
-    QVector<QPointer<QTextEdit > > m_texts;
     
 private slots:
     void Scale(double factor);

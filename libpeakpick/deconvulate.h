@@ -34,6 +34,14 @@
 typedef Eigen::VectorXd Vector;
 
 
+struct FitResult
+{
+    Vector parameter;
+    double sum_error = 0;
+    double sum_squared = 0;
+    
+};
+
 namespace PeakPick{
     
     template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
@@ -77,11 +85,29 @@ namespace PeakPick{
             for(int i = start; i <= end; ++i)
             {
                 double x = spec->X(i);
-                fvec(j) =  Signal(x, parameter, functions, ratio) - spec->Y(i) + err;
+                double Y = spec->Y(i);
+                double Y_=  Signal(x, parameter, functions, ratio);
+                fvec(j) =  Y - Y_  + err;
                 ++j;
             }
             return 0;
         }
+        
+        inline int operator()(const Eigen::VectorXd &parameter) 
+        {
+            m_sum_error = 0;
+            m_sum_squared = 0;
+            for(int i = start; i <= end; ++i)
+            {
+                double x = spec->X(i);
+                double Y = spec->Y(i);
+                double Y_=  Signal(x, parameter, functions, ratio);
+                m_sum_error += Y-Y_;
+                m_sum_squared += (Y-Y_)*(Y-Y_);
+            }
+            return 0;
+        }
+        
         int no_parameter;
         int no_points;
         int start, end;
@@ -90,13 +116,13 @@ namespace PeakPick{
         Vector guess;
         int inputs() const { return no_parameter; } 
         int values() const { return no_points; } 
-        double ratio;
+        double ratio, m_sum_error, m_sum_squared;
     };
     
     struct MyFunctorNumericalDiff : Eigen::NumericalDiff<MyFunctor> {};
     
     
-    Vector Deconvulate(const spectrum *spec, double start, double end, double ratio, const Vector &guess)
+    FitResult* Deconvulate(const spectrum *spec, double start, double end, double ratio, const Vector &guess)
     {
         MyFunctor functor(5*guess.size(), end-start+1);
         functor.start = start;
@@ -119,7 +145,13 @@ namespace PeakPick{
         Eigen::LevenbergMarquardt<Eigen::NumericalDiff<MyFunctor> > lm(numDiff);
         Eigen::LevenbergMarquardtSpace::Status status = lm.minimizeInit(parameter);
         lm.minimize(parameter);
-        return parameter;
+        functor(parameter);
+        FitResult *result = new FitResult;
+        result->parameter = parameter;
+        result->sum_error = functor.m_sum_error;
+        result->sum_squared = functor.m_sum_squared;
+        
+        return result;
     }
 }
 

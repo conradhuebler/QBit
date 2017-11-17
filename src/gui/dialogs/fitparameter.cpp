@@ -16,23 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtCore/QThread>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QPushButton>
 
-#include <libpeakpick/deconvulate.h>
-#include <libpeakpick/spectrum.h>
+#include "fitparameter.h"
 
-#include "fit_threaded.h"
-
-void FitThread::run()
+FitParameter::FitParameter(const QString &result, QWidget *parent) : m_result(result), QDialog(parent)
 {
-    m_result = PeakPick::Deconvulate(Data(), m_start, m_end, m_ratio, m_guess);
+    setUi();
+    setModal(false);
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
+    resize(800,600);
 }
 
-FitThread::~FitThread()  { delete m_result; }
+FitParameter::~FitParameter()
+{
+}
 
 
-
-Vector FitThread::Parameter() const { return m_result->parameter; }
-double FitThread::SumError() const { return m_result->sum_error; }
-double FitThread::SumSquared() const { return m_result->sum_squared; }
-    
+void FitParameter::setUi()
+{
+    QGridLayout *layout = new QGridLayout;
+    m_parameter = new QTextEdit;
+    m_parameter->setText(m_result);
+    layout->addWidget(m_parameter);
+    setLayout(layout);
+}
