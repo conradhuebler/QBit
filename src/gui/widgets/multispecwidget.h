@@ -30,6 +30,7 @@
 #include "src/core/nmrspec.h"
 
 class QPushButton;
+class QSpinBox;
 
 class ChartView;
 class SelectGuess;
@@ -120,7 +121,8 @@ public slots:
     
 private:
     QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate;
-    QDoubleSpinBox *m_ratio;
+    QDoubleSpinBox *m_ratio; 
+    QSpinBox *m_precision;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
     QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit; 

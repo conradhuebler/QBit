@@ -75,17 +75,19 @@ namespace PeakPick{
     }
     
     
-    inline std::vector<Peak> PickPeaks(spectrum *spec,  double threshold)
+    inline std::vector<Peak> PickPeaks(spectrum *spec,  double threshold, double precision = 1000)
     {
         std::vector<Peak> peaks;
 //         spectrum spec(&in_spec);
 //         SmoothFunction(&spec, 12);
-        double predes = 0;
+        int pos_predes = 0;
+        double predes = 0, y = 0;
         Peak peak;
         int peak_open = false;
         for(int i = 0; i < spec->size(); ++i)
         {
-            if( spec->Y(i) <= threshold)
+            y = round(precision*spec->Y(i))/precision;
+            if( y <= threshold)
             {
                 if(peak_open == 1)
                     peak_open = 0;
@@ -99,19 +101,19 @@ namespace PeakPick{
                     peak_open = 0; 
                      
                 }
-                predes = i;
+                pos_predes = i;
                 continue;
             }
                 
-            if(spec->Y(i) > spec->Y(predes))
+            if(y > predes)
             {
                 if(peak_open == 1)
                     peak.max = i;   
                 if(peak_open == 0)
-                    peak.start = predes;
+                    peak.start = pos_predes;
                 else if(peak_open == 2 )
                 {
-                    peak.end = predes;
+                    peak.end = pos_predes;
                     peaks.push_back(peak);
                     peak.start = i;
                     peak.max = i;
@@ -122,11 +124,12 @@ namespace PeakPick{
                 peak_open = 1;
             }
             
-            if(spec->Y(i) < spec->Y(predes))
+            if(y < predes)
             {
                 peak_open = 2;
             }
-            predes = i;
+            pos_predes = i;
+            predes = y;
         }
         
         return peaks;

@@ -50,6 +50,12 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     connect(m_pickpeaks, SIGNAL(clicked()), this, SLOT(PickPeaks()));
     toolbar->addWidget(m_pickpeaks);
     
+    m_precision = new QSpinBox;
+    m_precision->setMinimum(1);
+    m_precision->setMaximum(6);
+    toolbar->addWidget(new QLabel(tr("Precision")));
+    toolbar->addWidget(m_precision);
+    
     m_fit_single = new QPushButton(tr("Fit Single Peak"));
     connect(m_fit_single, SIGNAL(clicked()), this, SLOT(PrepareFit()));
     toolbar->addWidget(m_fit_single);
@@ -192,7 +198,7 @@ void MultiSpecWidget::PickPeaks()
     m_maxpeak.clear();
     for(int i = 0; i < m_spectra.size(); ++i)
     {
-        peaks = PeakPick::PickPeaks(m_spectra[i]->Data(), m_threshold[i]);
+        peaks = PeakPick::PickPeaks(m_spectra[i]->Data(), m_threshold[i], qPow(10, m_precision->value()-1));
         double inten = 0;
         for(QPointer<QtCharts::QLineSeries> serie : m_peaks)
         {
