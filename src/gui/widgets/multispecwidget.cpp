@@ -195,18 +195,27 @@ void MultiSpecWidget::Scale(double factor)
     
 }
 
+void MultiSpecWidget::ShowPickedPeaks(bool show)
+{
+    for(int i = 0; i < m_peaks.size(); ++i)
+    {
+        m_peaks[i]->setVisible(show);
+        m_peaks[i]->setVisible(show);
+    }
+}
+
+
 void MultiSpecWidget::PickPeaks()
 {
     m_maxpeak.clear();
+    m_peaks_list.clear();
+    qDeleteAll(m_peaks);
+    m_peaks.clear();
     for(int i = 0; i < m_spectra.size(); ++i)
     {
-        peaks = PeakPick::PickPeaks(m_spectra[i]->Data(), m_threshold[i], qPow(10, m_precision->value()-1));
+        std::vector<PeakPick::Peak> peaks = PeakPick::PickPeaks(m_spectra[i]->Raw(), m_threshold[i], qPow(10, m_precision->value()-1));
         double inten = 0;
-        for(QPointer<QtCharts::QLineSeries> serie : m_peaks)
-        {
-            if(serie)
-                m_chart->removeSeries(serie);
-        }
+
         for(const PeakPick::Peak &peak : peaks)
         {
             QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
@@ -214,7 +223,7 @@ void MultiSpecWidget::PickPeaks()
             series->append(m_spectra[i]->Data()->X(peak.start), 0);
             series->append(m_spectra[i]->Data()->X(peak.max), m_spectra[i]->Data()->Y(peak.max));
             series->append(m_spectra[i]->Data()->X(peak.end), 0);
-            series->setName(QString::number(m_spectra[i]->Data()->X(peak.max)));
+            //series->setName(QString::number(m_spectra[i]->Data()->X(peak.max)));
             if(inten < qAbs(m_spectra[i]->Data()->X(peak.end) - m_spectra[i]->Data()->X(peak.start) )*m_spectra[i]->Data()->Y(peak.max))
             {
                 inten = qAbs(m_spectra[i]->Data()->X(peak.end) - m_spectra[i]->Data()->X(peak.start) )*m_spectra[i]->Data()->Y(peak.max);
@@ -223,12 +232,16 @@ void MultiSpecWidget::PickPeaks()
             }
             if(qAbs(m_spectra[i]->Data()->X(peak.end) - m_spectra[i]->Data()->X(peak.start) )*m_spectra[i]->Data()->Y(peak.max) > 10e-5)
             {
-                m_chartview->addSeries(series, m_spectra[i]->Data()->Y(peak.max) > 0.5*m_spectra[i]->Data()->StdDev());
+                m_chartview->addSeries(series, false);
                 m_peaks << series;
                 m_peak_list.append( peak );
             }
         }
+        m_peaks_list << peaks;
+        emit PeakPicked(i);
     }
+
+
 }
 
 

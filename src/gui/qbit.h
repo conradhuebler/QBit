@@ -50,10 +50,11 @@ public:
     
 private:
     QPointer<fileHandler > m_files;
-    QPointer<MultiSpecWidget > m_widget; 
+    QPointer<MultiSpecWidget > m_spec_widget;
     QPointer<PeakWidget > m_peak_widget;
     QPointer<FilesWidget> m_files_widget;
     QPointer<QWidget > m_mainwidget;
+    QDockWidget *m_files_dock, *m_peaks_dock;
 
     QHBoxLayout *m_layout;
     int m_current_index; 
@@ -68,4 +69,5 @@ private slots:
     void addFile(int index);
     void LoadItem(const QListWidgetItem * item);
     void LoadSeveral();
+    void PeakPicked(int index);
 };

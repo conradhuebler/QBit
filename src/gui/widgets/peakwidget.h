@@ -18,17 +18,43 @@
 
 #pragma once
 
+#include <vector>
+
 #include <QtCore/QObject>
+
+#include <QtWidgets/QTableWidget>
 #include <QtWidgets/QWidget>
+
+
+#include <libpeakpick/spectrum.h>
+#include <libpeakpick/peakpick.h>
+
+#include "src/core/nmrspec.h"
+
 
 class PeakWidget : public QWidget
 {
     Q_OBJECT
+
 public:
     explicit PeakWidget(QWidget *parent = nullptr);
 
-signals:
+    inline void setPeaks(QVector<std::vector<PeakPick::Peak> > *peaks) { m_peaks = peaks; Update(); }
+    inline void setSpectraList(QVector<NMRSpec *> *spectra) { m_spectra = spectra; }
+
+    void Update();
 
 public slots:
+
+
+
+private:
+    QVector<std::vector<PeakPick::Peak> > *m_peaks;
+    QVector<NMRSpec *> *m_spectra;
+    QTableWidget *m_peak_list;
+    QPushButton *m_show_peaks;
+
+signals:
+    void ShowPeaks(bool show);
 };
 

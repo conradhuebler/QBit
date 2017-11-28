@@ -37,7 +37,7 @@
 
 #include "qbit.h"
 
-QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new MultiSpecWidget(this))
+QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this))
 {    
     m_open = new QAction(this);
     m_open->setText( "Open File" );
@@ -70,20 +70,29 @@ QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new
     addToolBar(m_system);
 
     m_files_widget = new FilesWidget;
-    m_files_widget->setMaximumWidth(200);
+    //m_files_widget->setMaximumWidth(200);
 
-    m_layout = new QHBoxLayout;
-    m_layout->addWidget(m_files_widget);
-    m_layout->addWidget(m_widget);
-    
-    m_mainwidget->setLayout(m_layout);
-    
-    setCentralWidget(m_mainwidget);
+    m_peak_widget = new PeakWidget;
+
+    m_files_dock = new QDockWidget(tr("Files"));
+    m_files_dock->setObjectName(tr("files"));
+    m_files_dock->setWidget(m_files_widget);
+
+    m_peaks_dock = new QDockWidget(tr("Peak List"));
+    m_peaks_dock->setObjectName(tr("peaks"));
+    m_peaks_dock->setWidget(m_peak_widget);
+
+    addDockWidget(Qt::LeftDockWidgetArea, m_files_dock);
+    addDockWidget(Qt::RightDockWidgetArea, m_peaks_dock);
+
+    setCentralWidget(m_spec_widget);
 
     connect(m_files, &fileHandler::SpectrumAdded, this, &QBit::LoadSpectrum);
     connect(m_files, &fileHandler::Finished, this, &QBit::Finished);
     connect(m_files, &fileHandler::FileAdded, this, &QBit::addFile);
     connect(m_files_widget, &FilesWidget::LoadItem, this, &QBit::LoadItem);
+    connect(m_peak_widget, &PeakWidget::ShowPeaks, m_spec_widget, &MultiSpecWidget::ShowPickedPeaks);
+    connect(m_spec_widget, &MultiSpecWidget::PeakPicked, this, &QBit::PeakPicked);
 }
 
 
@@ -96,7 +105,7 @@ QBit::~QBit()
 void QBit::LoadFile(const QString &file)
 {
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    m_widget->clear();
+    m_spec_widget->clear();
     m_files->addFile(file);
     QApplication::restoreOverrideCursor();
 }
@@ -108,7 +117,7 @@ void QBit::LoadFiles(const QStringList &fileName)
         return;
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    m_widget->clear();
+    m_spec_widget->clear();
     m_files->addFiles(fileName);
 
     QApplication::restoreOverrideCursor();
@@ -135,13 +144,14 @@ void QBit::LoadSpectrum(int index)
 {
     addFile(index);
     m_current_index = index;
-    m_widget->addSpectrum(m_files->Spectrum(index));
+    m_spec_widget->addSpectrum(m_files->Spectrum(index));
 }
 
 void QBit::Finished()
 {
-    m_widget->UpdateSeries(6);
-    m_widget->ResetZoomLevel();
+    m_spec_widget->UpdateSeries(6);
+    m_spec_widget->ResetZoomLevel();
+    m_peak_widget->setSpectraList(m_spec_widget->SpectraList() );
 }
 
 void QBit::addFile(int index)
@@ -163,21 +173,27 @@ void QBit::LoadItem(const QListWidgetItem * item)
     int index = item->data(Qt::UserRole).toInt();
     if(index == m_current_index)
         return;
-    m_widget->clear();
-    m_widget->addSpectrum(m_files->Spectrum(index));
+    m_spec_widget->clear();
+    m_spec_widget->addSpectrum(m_files->Spectrum(index));
     Finished();
     m_current_index = index;
 }
 
 void QBit::LoadSeveral()
 {
-    m_widget->clear();
+    m_spec_widget->clear();
     for(const QListWidgetItem *item : m_files_widget->selectedItems())
     {
         int index = item->data(Qt::UserRole).toInt();
-        m_widget->addSpectrum(m_files->Spectrum(index));
+        m_spec_widget->addSpectrum(m_files->Spectrum(index));
     }
     Finished();
     m_files_widget->clearSelection();
 }
+
+void QBit::PeakPicked(int index)
+{
+    m_peak_widget->setPeaks(m_spec_widget->PeakList());
+}
+
 #include "qbit.moc"

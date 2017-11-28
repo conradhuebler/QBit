@@ -114,11 +114,15 @@ public:
     ~MultiSpecWidget();
     void clear();
     
+    QVector<std::vector<PeakPick::Peak> > * PeakList() { return &m_peaks_list; }
+    QVector<NMRSpec *>  * SpectraList() { return &m_spectra; }
+
 public slots:
     void addSpectrum(NMRSpec *spectrum);
     void UpdateSeries(int tick);
     void ResetZoomLevel(); 
-    
+    void ShowPickedPeaks(bool show = true);
+
 private:
     QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate;
     QDoubleSpinBox *m_ratio; 
@@ -133,7 +137,7 @@ private:
     QVector<double > m_threshold;
     QVector< UpdateThread * > m_data_threads; 
     QVector< FitThread *> m_fit_threads;
-    std::vector<PeakPick::Peak> peaks;
+    QVector<std::vector<PeakPick::Peak> > m_peaks_list;
     QPointer<QtCharts::QLineSeries > m_chloroform;
     int m_files, m_scale_jobs;
     double m_scale, m_xmin, m_xmax;
@@ -156,6 +160,7 @@ private slots:
     
 signals:
     void PeakSelected(const QPointF &point);
+    void PeakPicked(int index);
 };
 
 
