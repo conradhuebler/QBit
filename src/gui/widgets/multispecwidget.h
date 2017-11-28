@@ -35,6 +35,7 @@ class QSpinBox;
 class ChartView;
 class SelectGuess;
 class FitThread;
+class PeakCallOut;
 class UpdateThread : public QRunnable
 {
 public:
@@ -139,6 +140,7 @@ private:
     QVector< FitThread *> m_fit_threads;
     QVector<std::vector<PeakPick::Peak> > m_peaks_list;
     QPointer<QtCharts::QLineSeries > m_chloroform;
+    QVector<PeakCallOut * > m_peak_anno;
     int m_files, m_scale_jobs;
     double m_scale, m_xmin, m_xmax;
     bool m_first_zoom;

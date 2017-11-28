@@ -32,6 +32,8 @@
 #include "chartview.h"
 #include "src/gui/dialogs/selectguess.h"
 #include "src/gui/dialogs/fitparameter.h"
+#include "peakcallout.h"
+
 #include "multispecwidget.h"
 
 
@@ -210,6 +212,8 @@ void MultiSpecWidget::PickPeaks()
     m_maxpeak.clear();
     m_peaks_list.clear();
     qDeleteAll(m_peaks);
+    qDeleteAll(m_peak_anno);
+    m_peak_anno.clear();
     m_peaks.clear();
     for(int i = 0; i < m_spectra.size(); ++i)
     {
@@ -234,8 +238,19 @@ void MultiSpecWidget::PickPeaks()
             {
                 m_chartview->addSeries(series, false);
                 m_peaks << series;
+                series->setVisible(false);
                 m_peak_list.append( peak );
             }
+
+            QPointF point(m_spectra[i]->Raw()->X(peak.max), m_spectra[i]->Raw()->Y(peak.max)*1.1);
+            PeakCallOut *annotation = new PeakCallOut(m_chart);
+                    annotation->setText(QString("%1").arg(point.x()));
+                    annotation->setAnchor(point);
+                    annotation->setZValue(11);
+                    annotation->updateGeometry();
+                    annotation->show();
+            m_peak_anno.append( annotation);
+
         }
         m_peaks_list << peaks;
         emit PeakPicked(i);

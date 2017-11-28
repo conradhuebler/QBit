@@ -92,6 +92,7 @@ set(qbit_gui
                 src/gui/widgets/multispecwidget.cpp
                 src/gui/widgets/peakwidget.cpp
                 src/gui/widgets/fileswidget.cpp
+                src/gui/widgets/peakcallout.cpp
                 src/gui/qbit.cpp
                 src/main.cpp)
 
