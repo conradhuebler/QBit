@@ -142,6 +142,40 @@ bool SpectrumLoader::loadNMRFile()
     
 }
 
+bool SpectrumLoader::loadJEOLFile()
+{
+    int  intNum   = 0;
+    std::cout << "starting with jeol file " << std::endl;
+    std::vector<double> entries;
+    Vector y;
+    std::ifstream file_i (m_filename.toStdString(), std::ios::binary);
+    if(file_i.is_open())
+    {
+        int number = 0;
+        while(true)
+        {
+            char *_char = new char[sizeof(intNum)];
+            file_i.read(_char,sizeof(intNum));   
+            std::cout << std::string(_char) << std::endl;
+            
+            
+            if(file_i.eof()) {
+                break;
+            }
+//             entries.push_back(intNum);
+//             number++;
+        }
+//         y = Vector::Map(&entries[0], number);
+        file_i.close ();
+    }
+    
+    
+//     original = PeakPick::spectrum(y,-15,0); 
+    
+    return true;
+    
+}
+
 bool SpectrumLoader::loadFidFile()
 {
     Vector y = BinFile2Vector(m_filename);
@@ -293,8 +327,11 @@ bool SpectrumLoader::loadDptFile()
 
 void SpectrumLoader::run()
 {
+    std::cout << "running file checker" << std::endl;
     if(m_filename.contains("txt"))
         m_load = loadAsciiFile();
+    else if(m_filename.contains("jdf"))
+        m_load = loadJEOLFile();
     else if(m_filename.contains("1r"))
         m_load = loadNMRFile();
     else if(m_filename.contains("fid"))
@@ -303,6 +340,7 @@ void SpectrumLoader::run()
         m_load = loadDptFile();
     else if(m_filename.contains("SPA"))
         m_load = loadFidFile();
+
     if(m_load)
     {
         spectrum = PeakPick::spectrum(original);

@@ -53,6 +53,7 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     m_precision = new QSpinBox;
     m_precision->setMinimum(1);
     m_precision->setMaximum(6);
+    m_precision->setValue(3);
     toolbar->addWidget(new QLabel(tr("Precision")));
     toolbar->addWidget(m_precision);
     
@@ -94,6 +95,7 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     connect(m_select, &SelectGuess::MaxChanged, this, static_cast<void(MultiSpecWidget::*)(double)>(&MultiSpecWidget::MaxChanged));
     connect(m_select, &SelectGuess::Fit, this, &MultiSpecWidget::FitSingle);
     connect(m_chartview, &ChartView::PointDoubleClicked, m_select, &SelectGuess::addMaxima);
+    connect(m_precision, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MultiSpecWidget::PickPeaks);
 }
 
 MultiSpecWidget::~MultiSpecWidget()

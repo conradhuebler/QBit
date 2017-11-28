@@ -50,13 +50,13 @@ void SelectGuess::setUi()
     
     m_maxima = new QLineEdit;
     m_maxima->setClearButtonEnabled(true);
-    
+/*
     layout->addWidget(new QLabel(tr("Start Region")), 0, 0);
     layout->addWidget(m_start, 0, 1);
     
     layout->addWidget(new QLabel(tr("End Region")), 0, 2);
     layout->addWidget(m_end, 0, 3);
-    
+*/
     layout->addWidget(new QLabel(tr("Peak Guess:")), 1, 0);
     layout->addWidget(m_maxima, 1, 1, 1, 2);
     

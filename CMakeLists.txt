@@ -90,6 +90,8 @@ set(qbit_gui
                 src/gui/dialogs/fitparameter.cpp
                 src/gui/widgets/chartview.cpp
                 src/gui/widgets/multispecwidget.cpp
+                src/gui/widgets/peakwidget.cpp
+                src/gui/widgets/fileswidget.cpp
                 src/gui/qbit.cpp
                 src/main.cpp)
 

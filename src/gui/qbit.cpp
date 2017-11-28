@@ -32,6 +32,8 @@
 #include "libpeakpick/peakpick.h"
 #include "src/core/filehandler.h"
 #include "src/gui/widgets/multispecwidget.h"
+#include "src/gui/widgets/peakwidget.h"
+#include "src/gui/widgets/fileswidget.h"
 
 #include "qbit.h"
 
@@ -40,7 +42,6 @@ QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new
     m_open = new QAction(this);
     m_open->setText( "Open File" );
     connect(m_open, &QAction::triggered, this, static_cast<void(QBit::*)()>(&QBit::LoadFile ));
-    
     
     m_openDir = new QAction(this);
     m_openDir->setText( "Open Dir" );
@@ -67,12 +68,10 @@ QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new
     addToolBar(m_file);
     addToolBar(m_manipulate);
     addToolBar(m_system);
-    
-    m_files_widget = new QListWidget;
+
+    m_files_widget = new FilesWidget;
     m_files_widget->setMaximumWidth(200);
-    m_files_widget->setSelectionMode(QAbstractItemView::MultiSelection);
-    
-    
+
     m_layout = new QHBoxLayout;
     m_layout->addWidget(m_files_widget);
     m_layout->addWidget(m_widget);
@@ -84,7 +83,7 @@ QBit::QBit():  m_files(new fileHandler), m_mainwidget(new QWidget), m_widget(new
     connect(m_files, &fileHandler::SpectrumAdded, this, &QBit::LoadSpectrum);
     connect(m_files, &fileHandler::Finished, this, &QBit::Finished);
     connect(m_files, &fileHandler::FileAdded, this, &QBit::addFile);
-    connect(m_files_widget, &QListWidget::itemDoubleClicked, this, &QBit::LoadItem);
+    connect(m_files_widget, &FilesWidget::LoadItem, this, &QBit::LoadItem);
 }
 
 

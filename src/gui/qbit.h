@@ -29,7 +29,11 @@ class QHBoxLayout;
 class QListWidget;
 class QWidget;
 class QTabWidget;
+
 class MultiSpecWidget;
+class FilesWidget;
+class PeakWidget;
+
 class QListWidgetItem;
 
 class QBit : public QMainWindow
@@ -47,8 +51,10 @@ public:
 private:
     QPointer<fileHandler > m_files;
     QPointer<MultiSpecWidget > m_widget; 
+    QPointer<PeakWidget > m_peak_widget;
+    QPointer<FilesWidget> m_files_widget;
     QPointer<QWidget > m_mainwidget;
-    QPointer<QListWidget > m_files_widget;
+
     QHBoxLayout *m_layout;
     int m_current_index; 
     QAction *m_open, *m_openDir, *m_load_sev, *m_quit;

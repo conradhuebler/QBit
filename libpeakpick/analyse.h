@@ -75,11 +75,25 @@ namespace PeakPick{
     }
     
     
-    inline std::vector<Peak> PickPeaks(spectrum *spec,  double threshold, double precision = 1000)
+    inline int FindMaximum(const spectrum *spec, const Peak &peak)
+    {
+        double val = 0;
+        int pos = 0;
+        for(int i = peak.start; i < peak.end; ++i)
+        {
+            double y = spec->Y(i);
+            if(val < spec->Y(i))
+            {
+                pos = i;
+                val = y;
+            }
+        }
+        return pos;
+    }
+
+    inline std::vector<Peak> PickPeaks(const spectrum *spec,  double threshold, double precision = 1000)
     {
         std::vector<Peak> peaks;
-//         spectrum spec(&in_spec);
-//         SmoothFunction(&spec, 12);
         int pos_predes = 0;
         double predes = 0, y = 0;
         Peak peak;
@@ -132,6 +146,11 @@ namespace PeakPick{
             predes = y;
         }
         
+        for(int i = 0; i < peaks.size(); ++i)
+        {
+            int pos = FindMaximum(spec, peaks[i]);
+            peaks[i].max = pos;
+        }
         return peaks;
     }
 }
