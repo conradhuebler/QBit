@@ -46,9 +46,18 @@ void PeakCallOut::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
     Q_UNUSED(option)
     Q_UNUSED(widget)
     QPainterPath path;
-    path.addRoundedRect(m_rect, 5, 5);
 
-    QPointF anchor = mapFromParent(m_chart->mapToPosition(m_anchor));
+
+    QPointF anchor = mapFromParent(m_chart->mapToPosition(m_text_position));
+    QPointF peak = mapFromParent(m_chart->mapToPosition(m_anchor));
+       //if (!m_rect.contains(anchor)) {
+           path.moveTo(anchor);
+           path.lineTo(anchor);
+           path.lineTo(peak);
+           path = path.simplified();
+       //}
+
+    painter->drawPath(path);
     painter->drawText(anchor, m_text);
 }
 
@@ -67,8 +76,9 @@ void PeakCallOut::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void PeakCallOut::setText(const QString &text)
+void PeakCallOut::setText(const QString &text, const QPointF &point)
 {
+    m_text_position = point;
     m_text = text;
     QFontMetrics metrics(m_font);
     m_textRect = metrics.boundingRect(QRect(0, 0, 150, 150), Qt::AlignLeft, m_text);

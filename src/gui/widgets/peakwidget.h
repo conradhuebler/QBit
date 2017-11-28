@@ -31,7 +31,7 @@
 
 #include "src/core/nmrspec.h"
 
-
+class QSpinBox;
 class PeakWidget : public QWidget
 {
     Q_OBJECT
@@ -53,8 +53,10 @@ private:
     QVector<NMRSpec *> *m_spectra;
     QTableWidget *m_peak_list;
     QPushButton *m_show_peaks;
+    QSpinBox *m_precision;
 
 signals:
     void ShowPeaks(bool show);
+    void PrecisionChanged(int precision);
 };
 

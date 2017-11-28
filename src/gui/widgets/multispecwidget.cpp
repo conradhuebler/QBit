@@ -47,18 +47,11 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     QGridLayout *layout = new QGridLayout;
     
     QHBoxLayout *toolbar = new QHBoxLayout;
-
+/*
     m_pickpeaks = new QPushButton(tr("Pick Peaks"));
     connect(m_pickpeaks, SIGNAL(clicked()), this, SLOT(PickPeaks()));
     toolbar->addWidget(m_pickpeaks);
-    
-    m_precision = new QSpinBox;
-    m_precision->setMinimum(1);
-    m_precision->setMaximum(6);
-    m_precision->setValue(3);
-    toolbar->addWidget(new QLabel(tr("Precision")));
-    toolbar->addWidget(m_precision);
-    
+  */
     m_fit_single = new QPushButton(tr("Fit Single Peak"));
     connect(m_fit_single, SIGNAL(clicked()), this, SLOT(PrepareFit()));
     toolbar->addWidget(m_fit_single);
@@ -97,7 +90,6 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     connect(m_select, &SelectGuess::MaxChanged, this, static_cast<void(MultiSpecWidget::*)(double)>(&MultiSpecWidget::MaxChanged));
     connect(m_select, &SelectGuess::Fit, this, &MultiSpecWidget::FitSingle);
     connect(m_chartview, &ChartView::PointDoubleClicked, m_select, &SelectGuess::addMaxima);
-    connect(m_precision, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MultiSpecWidget::PickPeaks);
 }
 
 MultiSpecWidget::~MultiSpecWidget()
@@ -207,7 +199,7 @@ void MultiSpecWidget::ShowPickedPeaks(bool show)
 }
 
 
-void MultiSpecWidget::PickPeaks()
+void MultiSpecWidget::PickPeaks(int precision)
 {
     m_maxpeak.clear();
     m_peaks_list.clear();
@@ -217,7 +209,7 @@ void MultiSpecWidget::PickPeaks()
     m_peaks.clear();
     for(int i = 0; i < m_spectra.size(); ++i)
     {
-        std::vector<PeakPick::Peak> peaks = PeakPick::PickPeaks(m_spectra[i]->Raw(), m_threshold[i], qPow(10, m_precision->value()-1));
+        std::vector<PeakPick::Peak> peaks = PeakPick::PickPeaks(m_spectra[i]->Raw(), m_threshold[i], qPow(5, precision-1));
         double inten = 0;
 
         for(const PeakPick::Peak &peak : peaks)
@@ -242,10 +234,10 @@ void MultiSpecWidget::PickPeaks()
                 m_peak_list.append( peak );
             }
 
-            QPointF point(m_spectra[i]->Raw()->X(peak.max), m_spectra[i]->Raw()->Y(peak.max)*1.1);
+            QPointF point(m_spectra[i]->Raw()->X((peak.end+peak.start+2*peak.max)/4.0), m_spectra[i]->Raw()->Max());
             PeakCallOut *annotation = new PeakCallOut(m_chart);
-                    annotation->setText(QString("%1").arg(point.x()));
-                    annotation->setAnchor(point);
+                    annotation->setText(QString("%1").arg(m_spectra[i]->Raw()->X(peak.max)), point);
+                    annotation->setAnchor(QPointF(m_spectra[i]->Raw()->X(peak.max), m_spectra[i]->Raw()->Y(peak.max)));
                     annotation->setZValue(11);
                     annotation->updateGeometry();
                     annotation->show();

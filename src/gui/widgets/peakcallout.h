@@ -31,7 +31,7 @@ public:
 
     PeakCallOut(QtCharts::QChart *parent);
 
-       void setText(const QString &text);
+       void setText(const QString &text, const QPointF &point);
        void setAnchor(QPointF point);
        void updateGeometry();
 
@@ -46,7 +46,7 @@ public:
        QString m_text;
        QRectF m_textRect;
        QRectF m_rect;
-       QPointF m_anchor;
+       QPointF m_anchor, m_text_position;
        QFont m_font;
        QtCharts::QChart *m_chart;
 };

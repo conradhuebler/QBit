@@ -17,7 +17,9 @@
  */
 
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTableWidget>
 
 
@@ -32,13 +34,22 @@ PeakWidget::PeakWidget(QWidget *parent) : QWidget(parent)
     m_show_peaks = new QPushButton(tr("Show Peaks"));
     m_show_peaks->setCheckable(true);
 
+    m_precision = new QSpinBox;
+    m_precision->setMinimum(1);
+    m_precision->setMaximum(15);
+    m_precision->setValue(4);
+
+
     QGridLayout *layout = new QGridLayout;
     layout->addWidget(m_show_peaks, 0,0);
-    layout->addWidget(m_peak_list, 1, 0);
+    layout->addWidget(new QLabel(tr("Filter")), 0, 1);
+    layout->addWidget(m_precision,0, 2);
+    layout->addWidget(m_peak_list, 1, 0, 1, 3);
 
     setLayout(layout);
 
     connect(m_show_peaks, &QPushButton::toggled, this, &PeakWidget::ShowPeaks);
+    connect(m_precision, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PeakWidget::PrecisionChanged);
 }
 
 
