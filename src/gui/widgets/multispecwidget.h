@@ -117,6 +117,8 @@ public:
     
     QVector<std::vector<PeakPick::Peak> > * PeakList() { return &m_peaks_list; }
     QVector<NMRSpec *>  * SpectraList() { return &m_spectra; }
+    QRectF getZoom() const;
+    void setZoom(const QRectF &rect);
 
 public slots:
     void addSpectrum(NMRSpec *spectrum);

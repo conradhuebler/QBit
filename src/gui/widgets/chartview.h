@@ -207,7 +207,8 @@ public:
     ChartView();
     inline ~ChartView() { }
     void addSeries( QtCharts::QAbstractSeries* series, bool legend = false );
-    qreal YMax() const { return m_ymax; }
+    inline virtual qreal YMax() const { return m_ymax; }
+    inline virtual qreal YMin() const { return -0.2; }
     inline qreal XMax() const 
     {
         QPointer<QtCharts::QValueAxis> x_axis = qobject_cast<QtCharts::QValueAxis *>( m_chart->axisX());
@@ -246,6 +247,17 @@ public:
         }
     }
     
+    inline void setY(qreal ymin, qreal ymax)
+    {
+        QPointer<QtCharts::QValueAxis> axis = qobject_cast<QtCharts::QValueAxis *>( m_chart->axisY());
+        if(axis)
+        {
+            axis->setMin(ymin);
+            axis->setTickCount(0);
+            axis->setMax(ymax);
+        }
+    }
+
     inline void removeSeries(QtCharts::QAbstractSeries *series) { m_chart->removeSeries(series); }
     inline QList<QtCharts::QAbstractSeries *> series() const { return m_chart->series(); }
     

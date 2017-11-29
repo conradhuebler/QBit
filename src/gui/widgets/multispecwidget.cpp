@@ -148,6 +148,18 @@ void MultiSpecWidget::clear()
     m_xmax = 0;
 }
 
+QRectF MultiSpecWidget::getZoom() const
+{
+    return QRectF(QPointF(m_chartview->XMin(), m_chartview->YMax()), QPointF(m_chartview->XMax(), m_chartview->YMin()));
+}
+
+void MultiSpecWidget::setZoom(const QRectF &rect)
+{
+    m_chartview->setX(rect.topLeft().x(), rect.bottomRight().x());
+    // m_chartview->setY(rect.bottomRight().y(), rect.topLeft().y());
+    m_chartview->setYMax(rect.topLeft().y());
+}
+
 void MultiSpecWidget::ResetZoomLevel()
 {
     m_chartview->formatAxis();
@@ -191,16 +203,19 @@ void MultiSpecWidget::Scale(double factor)
 
 void MultiSpecWidget::ShowPickedPeaks(bool show)
 {
+    QRectF rect = getZoom();
     for(int i = 0; i < m_peaks.size(); ++i)
     {
         m_peaks[i]->setVisible(show);
         m_peaks[i]->setVisible(show);
     }
+    setZoom(rect);
 }
 
 
 void MultiSpecWidget::PickPeaks(int precision)
 {
+    QRectF rect = getZoom();
     m_maxpeak.clear();
     m_peaks_list.clear();
     qDeleteAll(m_peaks);
@@ -247,8 +262,7 @@ void MultiSpecWidget::PickPeaks(int precision)
         m_peaks_list << peaks;
         emit PeakPicked(i);
     }
-
-
+    setZoom(rect);
 }
 
 
