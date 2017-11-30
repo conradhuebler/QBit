@@ -91,14 +91,16 @@ namespace PeakPick{
         return pos;
     }
 
-    inline std::vector<Peak> PickPeaks(const spectrum *spec,  double threshold, double precision = 1000)
+    inline std::vector<Peak> PickPeaks(const spectrum *spec, double threshold, double precision = 1000, int start = 0, int end = 0)
     {
         std::vector<Peak> peaks;
         int pos_predes = 0;
         double predes = 0, y = 0;
         Peak peak;
         int peak_open = false;
-        for(int i = 0; i < spec->size(); ++i)
+        if(end == 0)
+            end = spec->size();
+        for(int i = start; i < end; ++i)
         {
             y = round(precision*spec->Y(i))/precision;
             if( y <= threshold)

@@ -34,7 +34,10 @@ class QDoubleSpinBox;
 class QCheckBox;
 class ChartView;
 class SelectGuess;
+
 class FitThread;
+class PickThread;
+
 class PeakCallOut;
 class UpdateThread : public QRunnable
 {
@@ -133,17 +136,22 @@ private:
     QCheckBox *m_conservative;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
-    QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit; 
+
     QStringList m_filenames;
-    QVector<PeakPick::Peak > m_peak_list;
-    QVector<NMRSpec *> m_spectra;
-    QVector<PeakPick::Peak> m_maxpeak;
+
     QVector<double > m_threshold;
-    QVector< UpdateThread * > m_data_threads; 
-    QVector< FitThread *> m_fit_threads;
+
+
+    QVector<NMRSpec *> m_spectra;
     QVector<std::vector<PeakPick::Peak> > m_peaks_list;
-    QPointer<QtCharts::QLineSeries > m_chloroform;
+    QVector<PickThread * > m_pick_threads;
+    QVector< FitThread *> m_fit_threads;
+
+    QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit;
+    QVector< UpdateThread * > m_data_threads;
+
     QVector<PeakCallOut * > m_peak_anno;
+
     int m_files, m_scale_jobs;
     double m_scale, m_xmin, m_xmax;
     bool m_first_zoom;

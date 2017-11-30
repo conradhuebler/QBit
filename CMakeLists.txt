@@ -80,6 +80,7 @@ set(qbit_core_SRC
                 src/core/nmrspec.cpp
                 src/core/filehandler.cpp
                 src/func/fit_threaded.cpp
+                src/func/pick_threaded.cpp
 )
 
 add_library(qbit_core STATIC ${qbit_core_SRC})

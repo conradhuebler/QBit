@@ -28,6 +28,7 @@
 #include <QtCharts/QtCharts>
 
 #include "src/func/fit_threaded.h"
+#include "src/func/pick_threaded.h"
 
 #include "chartview.h"
 #include "src/gui/dialogs/selectguess.h"
@@ -47,11 +48,7 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     QGridLayout *layout = new QGridLayout;
     
     QHBoxLayout *toolbar = new QHBoxLayout;
-/*
-    m_pickpeaks = new QPushButton(tr("Pick Peaks"));
-    connect(m_pickpeaks, SIGNAL(clicked()), this, SLOT(PickPeaks()));
-    toolbar->addWidget(m_pickpeaks);
-  */
+
     m_fit_single = new QPushButton(tr("Fit Single Peak"));
     connect(m_fit_single, SIGNAL(clicked()), this, SLOT(PrepareFit()));
     toolbar->addWidget(m_fit_single);
@@ -132,11 +129,19 @@ void MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     FitThread *fit = new FitThread(spectrum->Name(), m_spectra.size() - 1);
     fit->setData( m_spectra[m_spectra.size() - 1]->Raw() );
     m_fit_threads << fit;
+
+    PickThread *pick = new PickThread();
+    pick->setData( m_spectra[m_spectra.size() - 1]->Raw() );
+    m_pick_threads << pick;
+
     m_files++;
 }
 
 void MultiSpecWidget::clear()
 {
+    qDeleteAll(m_pick_threads);
+    m_pick_threads.clear();
+
     qDeleteAll(m_data_threads);
     m_data_threads.clear();
     qDeleteAll(m_fit_threads);
@@ -221,16 +226,42 @@ void MultiSpecWidget::ShowPickedPeaks(bool show)
 void MultiSpecWidget::PickPeaks(int precision)
 {
     QRectF rect = getZoom();
-    m_maxpeak.clear();
-    m_peak_list.clear();
     m_peaks_list.clear();
     qDeleteAll(m_peaks);
     qDeleteAll(m_peak_anno);
     m_peak_anno.clear();
     m_peaks.clear();
+    int start = 0, end = 0;
     for(int i = 0; i < m_spectra.size(); ++i)
     {
-        std::vector<PeakPick::Peak> peaks = PeakPick::PickPeaks(m_spectra[i]->Raw(), m_threshold[i], qPow(5, precision-1));
+            double diff_min = 10, diff_max = 10;
+            for(int j = 0; j < m_spectra[i]->Data()->size(); ++j)
+            {
+                double Xi = m_spectra[i]->Data()->X(j);
+
+                double t_diff_min = qAbs(Xi-m_chartview->XMin());
+                double t_diff_max = qAbs(Xi-m_chartview->XMax());
+
+                if( t_diff_min < diff_min)
+                    start = j;
+
+                if(t_diff_max < diff_max)
+                    end = j;
+
+                diff_min = t_diff_min;
+                diff_max = t_diff_max;
+            }
+        m_pick_threads[i]->setPrecision(precision-1);
+        m_pick_threads[i]->setThreshold(m_threshold[i]);
+        m_pick_threads[i]->setRange(start, end);
+        QThreadPool::globalInstance()->start(m_pick_threads[i]);
+    }
+
+    QThreadPool::globalInstance()->waitForDone();
+    for(int i = 0; i < m_pick_threads.size(); ++i)
+    {
+        std::vector<PeakPick::Peak> peaks = m_pick_threads[i]->getPeaks();
+
         double inten = 0;
 
         for(const PeakPick::Peak &peak : peaks)
@@ -238,28 +269,18 @@ void MultiSpecWidget::PickPeaks(int precision)
             QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
             
             series->append(m_spectra[i]->Data()->X(peak.start), 0);
-            series->append(m_spectra[i]->Data()->X(peak.max), m_spectra[i]->Data()->Y(peak.max));
+            series->append(m_spectra[i]->Data()->X(peak.max), m_spectra[i]->Data()->Y(peak.max) + i);
             series->append(m_spectra[i]->Data()->X(peak.end), 0);
-            //series->setName(QString::number(m_spectra[i]->Data()->X(peak.max)));
-            if(inten < qAbs(m_spectra[i]->Data()->X(peak.end) - m_spectra[i]->Data()->X(peak.start) )*m_spectra[i]->Data()->Y(peak.max))
-            {
-                inten = qAbs(m_spectra[i]->Data()->X(peak.end) - m_spectra[i]->Data()->X(peak.start) )*m_spectra[i]->Data()->Y(peak.max);
-                m_maxpeak << peak;
-                m_chloroform = series;
-            }
-
-            //if(qAbs(m_spectra[i]->Data()->X(peak.end) - m_spectra[i]->Data()->X(peak.start) )*m_spectra[i]->Data()->Y(peak.max) > 10e-5)
             {
                 m_chartview->addSeries(series, false);
                 m_peaks << series;
                 series->setVisible(false);
-                m_peak_list.append( peak );
             }
 
-            QPointF point(m_spectra[i]->Raw()->X((peak.end+peak.start+2*peak.max)/4.0), m_spectra[i]->Raw()->Max());
+            QPointF point(m_spectra[i]->Raw()->X((peak.end+peak.start+2*peak.max)/4.0), 2+i);
             PeakCallOut *annotation = new PeakCallOut(m_chart);
                     annotation->setText(QString("%1").arg(m_spectra[i]->Raw()->X(peak.max)), point);
-                    annotation->setAnchor(QPointF(m_spectra[i]->Raw()->X(peak.max), m_spectra[i]->Raw()->Y(peak.max)));
+                    annotation->setAnchor(QPointF(m_spectra[i]->Raw()->X(peak.max), i + m_spectra[i]->Raw()->Y(peak.max)));
                     annotation->setZValue(11);
                     annotation->updateGeometry();
                     annotation->show();
@@ -309,9 +330,9 @@ void MultiSpecWidget::Deconvulate()
         }
         
         
-        for(int nr = 0; nr < m_peak_list.size(); ++nr)
+        for(int nr = 0; nr < m_peaks_list[i].size(); ++nr)
         {
-            const PeakPick::Peak peak = m_peak_list[nr];
+            const PeakPick::Peak peak = m_peaks_list[i][nr];
             if(peak.max > start && peak.max < end)
             {
                 guess_vector.push_back( m_spectra[i]->Data()->X(peak.max ));    

@@ -36,8 +36,8 @@ PeakWidget::PeakWidget(QWidget *parent) : QWidget(parent)
 
     m_precision = new QSpinBox;
     m_precision->setMinimum(1);
-    m_precision->setMaximum(15);
-    m_precision->setValue(4);
+    m_precision->setMaximum(100);
+    m_precision->setValue(12);
 
 
     QGridLayout *layout = new QGridLayout;

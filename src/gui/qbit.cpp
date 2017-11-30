@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <QtCore/QCollator>
 #include <QtCore/QDir>
 #include <QtCore/QVector>
 
@@ -119,6 +121,17 @@ void QBit::LoadFiles(const QStringList &fileName)
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     m_spec_widget->clear();
+/*
+    QCollator collator;
+            collator.setNumericMode(true);
+            std::sort(
+                fileName.begin(),
+                      fileName.end(),
+                      [&collator](const QString &key1, const QString &key2)
+                      {
+                          return collator.compare(key1, key2) < 0;
+                      });
+*/
     m_files->addFiles(fileName);
 
     QApplication::restoreOverrideCursor();
@@ -153,7 +166,7 @@ void QBit::Finished()
     m_spec_widget->UpdateSeries(6);
     m_spec_widget->ResetZoomLevel();
     m_peak_widget->setSpectraList(m_spec_widget->SpectraList() );
-    m_spec_widget->PickPeaks(4);
+    m_spec_widget->PickPeaks(5);
 }
 
 void QBit::addFile(int index)
