@@ -31,7 +31,7 @@
 
 class QPushButton;
 class QDoubleSpinBox;
-
+class QCheckBox;
 class ChartView;
 class SelectGuess;
 class FitThread;
@@ -130,6 +130,7 @@ public slots:
 private:
     QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate;
     QDoubleSpinBox *m_ratio; 
+    QCheckBox *m_conservative;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
     QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit; 
@@ -147,7 +148,7 @@ private:
     double m_scale, m_xmin, m_xmax;
     bool m_first_zoom;
     SelectGuess *m_select;
-    void AnalyseFitThreads(const QVector<FitThread *> &threads);
+    Vector AnalyseFitThreads(const QVector<FitThread *> &threads);
     
 private slots:
     void Scale(double factor);

@@ -25,7 +25,7 @@ struct FitResult;
 class FitThread : public QRunnable
 {
 public:
-    inline FitThread(const QString &name, int position) : m_name(name), m_position(position) { setAutoDelete(false); }
+    FitThread(const QString &name, int position); // : m_name(name), m_position(position), m_fittype(PeakPick::Liberal) { setAutoDelete(false); }
     ~FitThread();
     virtual void run() override;
     
@@ -45,14 +45,14 @@ public:
     int Start() const { return m_start; }
     int End() const { return m_end; }
     
+    void setFitType(int fittype) { m_fittype = fittype; }
     
 private:
     QString m_name;
     double m_ratio;
     const PeakPick::spectrum *m_spectrum;
     Vector m_parameter, m_guess; 
-    int m_start, m_end;  
-    int m_position;
+    int m_start, m_end, m_position, m_fittype;
     FitResult *m_result;
 
 };

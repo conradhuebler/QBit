@@ -23,16 +23,33 @@
 
 #include "fit_threaded.h"
 
-void FitThread::run()
+FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal)
 {
-    m_result = PeakPick::Deconvulate(Data(), m_start, m_end, m_ratio, m_guess);
+    setAutoDelete(false);
 }
 
-FitThread::~FitThread()  { delete m_result; }
+void FitThread::run()
+{ 
+    m_result = PeakPick::LiberalDeconvulate(Data(), m_start, m_end, m_ratio, m_guess, m_fittype);
+}
 
+FitThread::~FitThread()
+{
+    delete m_result;
+}
 
+Vector FitThread::Parameter() const
+{
+    return m_result->parameter;
+}
 
-Vector FitThread::Parameter() const { return m_result->parameter; }
-double FitThread::SumError() const { return m_result->sum_error; }
-double FitThread::SumSquared() const { return m_result->sum_squared; }
+double FitThread::SumError() const
+{
+    return m_result->sum_error;
+}
+
+double FitThread::SumSquared() const
+{
+    return m_result->sum_squared;
+}
     

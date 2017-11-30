@@ -23,7 +23,7 @@
 #include <QtGui/QFont>
 
 class QGraphicsSceneMouseEvent;
-class QtCharts::QChart;
+//class QtCharts::QChart;
 
 class PeakCallOut : public QGraphicsItem
 {
