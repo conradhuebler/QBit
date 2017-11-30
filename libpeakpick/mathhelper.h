@@ -146,14 +146,14 @@ namespace PeakPick{
         return 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2));
     }
     
-    inline double Signal(double x, Vector parameter, int functions, double ratio = 0.9)
+    inline double Signal(double x, Vector parameter, int functions)
     {
         double signal = 0;
         for(int i = 0; i < functions; ++i)
         {
-            double gaussian = Gaussian(x, parameter(1+i*5), parameter(0+i*5), parameter(2+i*5));
-            double lorentzian = Lorentzian(x, parameter(0+i*5), parameter(3+i*5));
-            signal += ((1-ratio)*gaussian + ratio*lorentzian)*parameter(4+i*5);
+            double gaussian = Gaussian(x, parameter(1+i*6), parameter(0+i*6), parameter(2+i*6));
+            double lorentzian = Lorentzian(x, parameter(0+i*6), parameter(3+i*6));
+            signal += ((1-parameter(5+i*6))*gaussian + parameter(5+i*6)*lorentzian)*parameter(4+i*6);
         }
         return signal;
     }

@@ -43,10 +43,10 @@ struct FitResult
 };
 
 namespace PeakPick{
-    
+
     template<typename _Scalar, int NX = Eigen::Dynamic, int NY = Eigen::Dynamic>
     
-    struct Functor
+    struct GaussianLorentzian
     {
         typedef _Scalar Scalar;
         enum {
@@ -59,41 +59,42 @@ namespace PeakPick{
         
         int m_inputs, m_values;
         
-        inline Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
+        inline GaussianLorentzian(int inputs, int values) : m_inputs(inputs), m_values(values) {}
         
         int inputs() const { return m_inputs; }
         int values() const { return m_values; }
         
     };
     
-    struct MyFunctor : Functor<double>
+    struct LiberalGLFit : GaussianLorentzian<double>
     {
-        inline MyFunctor(int inputs, int values) : Functor(inputs, values), no_parameter(inputs),  no_points(values)
+        inline LiberalGLFit(int inputs, int values) : GaussianLorentzian(inputs, values), no_parameter(inputs),  no_points(values)
         {
-            
+
         }
-        inline ~MyFunctor() { }
-        inline int operator()(const Eigen::VectorXd &parameter, Eigen::VectorXd &fvec) const
+        inline ~LiberalGLFit() { }
+        inline int operator()(Eigen::VectorXd parameter, Eigen::VectorXd &fvec) const
         {
             int j = 0;
             double err = 0;
-//             for(int i = 0; i < guess.size(); ++i)
+            for(int i = 0; i < parameter.size(); ++i)
             {
-//                 err += (guess(i)-parameter(0+i*5))*(guess(i)-parameter(0+i*5));
-//                 std::cout << err << " " << guess(i) << " " << parameter(0+i*5) << std::endl;
+                if(m_lock(i) == 1)
+                    parameter(i) = m_original(i);
+
             }
             for(int i = start; i <= end; ++i)
             {
                 double x = spec->X(i);
                 double Y = spec->Y(i);
-                double Y_=  Signal(x, parameter, functions, ratio);
+                double Y_=  Signal(x, parameter, functions);
                 fvec(j) =  Y - Y_  + err;
                 ++j;
             }
             return 0;
         }
-        
-        inline int operator()(const Eigen::VectorXd &parameter) 
+
+        inline int operator()(const Eigen::VectorXd &parameter)
         {
             m_sum_error = 0;
             m_sum_squared = 0;
@@ -101,48 +102,64 @@ namespace PeakPick{
             {
                 double x = spec->X(i);
                 double Y = spec->Y(i);
-                double Y_=  Signal(x, parameter, functions, ratio);
+                double Y_=  Signal(x, parameter, functions);
                 m_sum_error += Y-Y_;
                 m_sum_squared += (Y-Y_)*(Y-Y_);
             }
             return 0;
         }
-        
-        int no_parameter;
-        int no_points;
-        int start, end;
-        int functions;
+
+        int no_parameter, no_points, start, end, functions;
+        double m_sum_error, m_sum_squared;
         const spectrum *spec;
-        Vector guess;
-        int inputs() const { return no_parameter; } 
-        int values() const { return no_points; } 
-        double ratio, m_sum_error, m_sum_squared;
+        Vector m_original, m_lock;
+        inline int inputs() const { return no_parameter; }
+        inline int values() const { return no_points; }
     };
+
+    struct LiberalGLFitNumericalDiff : Eigen::NumericalDiff<LiberalGLFit> {};
     
-    struct MyFunctorNumericalDiff : Eigen::NumericalDiff<MyFunctor> {};
-    
-    
-    FitResult* Deconvulate(const spectrum *spec, double start, double end, double ratio, const Vector &guess)
+    FitResult* LiberalDeconvulate(const spectrum *spec, double start, double end, double ratio, const Vector &guess, int fittype)
     {
-        MyFunctor functor(5*guess.size(), end-start+1);
+        std::cout << "Having guess size: " << guess.size() << std::endl;
+        LiberalGLFit functor(6*guess.size(), end-start+1);
         functor.start = start;
         functor.end = end;
         functor.spec = spec;
-        functor.ratio = ratio;
         functor.functions = guess.size(); 
-        functor.guess = guess;
-        Vector parameter(5*guess.size());
+        Vector parameter(6*guess.size());
+        Vector lock(6*guess.size());
         for(int i = 0; i < guess.size(); ++i)
         {
-            parameter(0+i*5) = guess(i);
-            parameter(1+i*5) = 1;
-            parameter(2+i*5) = 10;
-            parameter(3+i*5) = 1/double(50);
-            parameter(4+i*5) = 1/double(30);
+            parameter(0+i*6) = guess(i);
+            if(fittype == Conservative)
+                lock(0+i*6) = 1;
+            else
+                lock(0+i*6) = 0;
+
+            parameter(1+i*6) = 1;
+            lock(1+i*6) = 0;
+
+            parameter(2+i*6) = 10;
+            lock(2+i*6) = 0;
+
+            parameter(3+i*6) = 1/double(50);
+            lock(3+i*6) = 0;
+
+            parameter(4+i*6) = 1/double(30);
+            lock(4+i*6) = 0;
+
+            parameter(5+i*6) = ratio;
+            if(fittype == Innovative)
+                lock(5+i*6) = 0;
+            else
+                lock(5+i*6) = 1;
         }
-        
-        Eigen::NumericalDiff<MyFunctor> numDiff(functor);
-        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<MyFunctor> > lm(numDiff);
+
+        functor.m_original = parameter;
+        functor.m_lock = lock;
+        Eigen::NumericalDiff<LiberalGLFit> numDiff(functor);
+        Eigen::LevenbergMarquardt<Eigen::NumericalDiff<LiberalGLFit> > lm(numDiff);
         Eigen::LevenbergMarquardtSpace::Status status = lm.minimizeInit(parameter);
         lm.minimize(parameter);
         functor(parameter);
@@ -150,7 +167,7 @@ namespace PeakPick{
         result->parameter = parameter;
         result->sum_error = functor.m_sum_error;
         result->sum_squared = functor.m_sum_squared;
-        
+        std::cout << parameter << std::endl;
         return result;
     }
 }

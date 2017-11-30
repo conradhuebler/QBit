@@ -33,6 +33,9 @@ typedef Eigen::VectorXd Vector;
 
 namespace PeakPick{
 
+    enum { Innovative = 1, Liberal = 2, Conservative = 3 };
+
+
 class spectrum
 {
     
