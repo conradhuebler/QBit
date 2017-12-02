@@ -346,8 +346,8 @@ void SpectrumLoader::run()
         spectrum = PeakPick::spectrum(original);
         if(!(m_filename.contains("dpt")))
         {
-            PeakPick::Normalise(&original,0,2);
-            PeakPick::Normalise(&spectrum, 0, 2);
+            PeakPick::Normalise(&original,0,10);
+            PeakPick::Normalise(&spectrum, 0, 10);
             PeakPick::SmoothFunction(&spectrum, 12);
         }else
             m_nmr = false;

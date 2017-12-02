@@ -26,6 +26,8 @@
 
 PickThread::PickThread() : m_precision(3)
 {
+    data = false;
+    raw = false;
     setAutoDelete(false);
 }
 
@@ -37,5 +39,14 @@ PickThread::~PickThread()
 
 void PickThread::run()
 {
-    m_peaks = PeakPick::PickPeaks(m_spectrum, m_threshold, qPow(2, m_precision-1));
+    if(data)
+        m_peaks = PeakPick::PickPeaks(m_data, m_threshold, qPow(2, m_precision-1));
+    if(raw)
+    {
+        for(int i = 0; i < m_peaks.size(); ++i)
+        {
+            int pos = PeakPick::FindMaximum(m_raw, m_peaks[i]);
+            m_peaks[i].max = pos;
+        }
+    }
 }

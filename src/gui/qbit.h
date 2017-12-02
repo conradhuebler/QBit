@@ -44,7 +44,7 @@ public:
     ~QBit();
     
     void LoadFile(const QString &file);
-    void LoadFiles(const QStringList &files);
+    void LoadFiles(QStringList files);
     
     
     

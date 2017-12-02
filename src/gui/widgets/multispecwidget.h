@@ -32,6 +32,7 @@
 class QPushButton;
 class QDoubleSpinBox;
 class QCheckBox;
+class QThreadPool;
 class ChartView;
 class SelectGuess;
 
@@ -131,12 +132,12 @@ public slots:
     void PickPeaks(int precision);
 
 private:
-    QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate;
+    QPushButton  *m_pickpeaks, *m_fit_single, *m_deconvulate, *m_deconvulate_single;
     QDoubleSpinBox *m_ratio; 
     QCheckBox *m_conservative;
     ChartView *m_chartview;
     QtCharts::QChart *m_chart;
-
+    QPointer<QThreadPool> m_threads;
     QStringList m_filenames;
 
     QVector<double > m_threshold;
@@ -161,6 +162,7 @@ private:
 private slots:
     void Scale(double factor);
     void Deconvulate();
+    void SingleDeconvulate();
     void PrepareFit();
     void FitSingle();
     void scaleUp();

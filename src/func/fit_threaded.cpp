@@ -23,19 +23,21 @@
 
 #include "fit_threaded.h"
 
-FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal)
+FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal), result(false)
 {
     setAutoDelete(false);
 }
 
 void FitThread::run()
 { 
+    result = true;
     m_result = PeakPick::LiberalDeconvulate(Data(), m_start, m_end, m_ratio, m_guess, m_fittype);
 }
 
 FitThread::~FitThread()
 {
-    delete m_result;
+    if(result)
+        delete m_result;
 }
 
 Vector FitThread::Parameter() const

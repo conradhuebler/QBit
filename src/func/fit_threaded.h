@@ -54,5 +54,5 @@ private:
     Vector m_parameter, m_guess; 
     int m_start, m_end, m_position, m_fittype;
     FitResult *m_result;
-
+    bool result;
 };

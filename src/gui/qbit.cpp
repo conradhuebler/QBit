@@ -114,14 +114,14 @@ void QBit::LoadFile(const QString &file)
 }
 
 
-void QBit::LoadFiles(const QStringList &fileName)
+void QBit::LoadFiles(QStringList fileName)
 {
     if(fileName.size() == 0)
         return;
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
     m_spec_widget->clear();
-/*
+
     QCollator collator;
             collator.setNumericMode(true);
             std::sort(
@@ -131,7 +131,7 @@ void QBit::LoadFiles(const QStringList &fileName)
                       {
                           return collator.compare(key1, key2) < 0;
                       });
-*/
+
     m_files->addFiles(fileName);
 
     QApplication::restoreOverrideCursor();

@@ -37,7 +37,7 @@ namespace PeakPick{
     struct Peak{
      int start = 0;
      int max = 0;
-     int end = 0;   
+     int end = 0;
     };
     
     
@@ -91,7 +91,7 @@ namespace PeakPick{
         return pos;
     }
 
-    inline std::vector<Peak> PickPeaks(const spectrum *spec, double threshold, double precision = 1000, int start = 0, int end = 0)
+    inline std::vector<Peak> PickPeaks(const spectrum *spec, double threshold, double precision = 1000, int start = 0, int end = 0, int step = 1)
     {
         std::vector<Peak> peaks;
         int pos_predes = 0;
@@ -100,7 +100,7 @@ namespace PeakPick{
         int peak_open = false;
         if(end == 0)
             end = spec->size();
-        for(int i = start; i < end; ++i)
+        for(int i = start; i < end; i += step)
         {
             y = round(precision*spec->Y(i))/precision;
             if( y <= threshold)
@@ -146,12 +146,6 @@ namespace PeakPick{
             }
             pos_predes = i;
             predes = y;
-        }
-        
-        for(int i = 0; i < peaks.size(); ++i)
-        {
-            int pos = FindMaximum(spec, peaks[i]);
-            peaks[i].max = pos;
         }
         return peaks;
     }

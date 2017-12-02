@@ -27,8 +27,9 @@ public:
     ~PickThread();
     virtual void run() override;
     
-    const PeakPick::spectrum *Data() const { return m_spectrum; }
-    void setData(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
+    const PeakPick::spectrum *Data() const { return m_data; }
+    void setData(const PeakPick::spectrum *spectrum) { m_data = spectrum; data = true; }
+    void setRaw(const PeakPick::spectrum *spectrum) { m_raw = spectrum; raw = true;}
     void setRange(double start, double end) { m_start = start; m_end = end; }
     
     inline void setPrecision(int precision) { m_precision = precision; }
@@ -40,8 +41,10 @@ public:
     
 private:
     QString m_name;
-    const PeakPick::spectrum *m_spectrum;
+    const PeakPick::spectrum *m_raw;
+    const PeakPick::spectrum *m_data;
     int m_start, m_end, m_precision;
     std::vector<PeakPick::Peak> m_peaks;
     double m_threshold;
+    bool data, raw;
 };

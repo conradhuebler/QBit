@@ -82,9 +82,9 @@ void PeakCallOut::setText(const QString &text, const QPointF &point)
     m_text = text;
     QFontMetrics metrics(m_font);
     m_textRect = metrics.boundingRect(QRect(0, 0, 150, 150), Qt::AlignLeft, m_text);
-    m_textRect.translate(5, 5);
     prepareGeometryChange();
-    m_rect = m_textRect.adjusted(-5, -5, 5, 5);
+    m_rect = m_textRect.adjusted(0, 0, 0, 0);
+    setRotation(-90);
 }
 
 void PeakCallOut::setAnchor(QPointF point)
