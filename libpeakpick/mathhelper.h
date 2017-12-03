@@ -23,6 +23,7 @@
 
 
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <vector>
 
@@ -30,6 +31,26 @@ typedef Eigen::VectorXd Vector;
 static double pi = 3.14159265;
 
 namespace PeakPick{
+
+    inline double SimpsonIntegrate(double lower, double upper, std::function<double(double, const Vector &)> function, const Vector &parameter, double prec = 1e-5)
+    {
+        double integ = 0;
+        double delta = prec;
+
+        int increments = (upper - lower)/prec;
+        std::cout << "prepare for numerical integration " << integ << parameter.transpose() << std::endl;
+#pragma omp parallel for reduction(+:integ)
+         for(int i = 0; i < increments; ++i)
+        {
+            double x = lower+i/double(increments);
+            double b = x + delta;
+            integ += (b-x)/6*(function(x, parameter)+4*function((x+b)/2,parameter)+function(b,parameter));
+        }
+        std::cout << "result from integration over part of function " << integ << parameter.transpose() << std::endl;
+
+        return integ;
+    }
+
 
     inline double mean(const Vector &vector, int *min = NULL, int *max = NULL)
     {
@@ -138,7 +159,7 @@ namespace PeakPick{
         
     inline double Gaussian(double x, double a, double x_0, double c)
     {
-        return 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)));
+        return a*exp(-pow((x-x_0),2)/(2*c*c));
     }
     
     inline double Lorentzian(double x, double x_0, double gamma)
@@ -146,16 +167,33 @@ namespace PeakPick{
         return 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2));
     }
     
-    inline double Signal(double x, Vector parameter, int functions)
+    inline double Signal(double x, const Vector &parameter)
     {
         double signal = 0;
-        for(int i = 0; i < functions; ++i)
+        for(int i = 0; i < parameter.size()/6; ++i)
         {
             double gaussian = Gaussian(x, parameter(1+i*6), parameter(0+i*6), parameter(2+i*6));
             double lorentzian = Lorentzian(x, parameter(0+i*6), parameter(3+i*6));
             signal += ((1-parameter(5+i*6))*gaussian + parameter(5+i*6)*lorentzian)*parameter(4+i*6);
         }
         return signal;
+    }
+
+    inline double IntegrateGLFunction(const Vector &parameter)
+    {
+        double integ = 0;
+        for(int i = 0; i < parameter.size()/6; ++i)
+        {
+            integ += (((1-parameter(5+i*6))*parameter(1+i*6)*parameter(2+i*6))+parameter(5+i*6))*parameter(4+i*6);
+        }
+        std::cout << "result from integration over whole function " << integ << parameter.transpose() << std::endl;
+        return integ;
+    }
+
+    inline double IntegrateGLSignal(const Vector &parameter, double start, double end)
+    {
+        std::function<double(double, const Vector &)> function = Signal;
+        return SimpsonIntegrate(start, end, function, parameter);
     }
 }
 

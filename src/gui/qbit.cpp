@@ -95,6 +95,7 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     connect(m_files_widget, &FilesWidget::LoadItem, this, &QBit::LoadItem);
     connect(m_peak_widget, &PeakWidget::ShowPeaks, m_spec_widget, &MultiSpecWidget::ShowPickedPeaks);
     connect(m_spec_widget, &MultiSpecWidget::PeakPicked, this, &QBit::PeakPicked);
+    connect(m_spec_widget, &MultiSpecWidget::DeconvulationFinished, this, &QBit::PeakPicked);
     connect(m_peak_widget, &PeakWidget::PrecisionChanged, m_spec_widget, &MultiSpecWidget::PickPeaks);
 }
 
@@ -166,7 +167,7 @@ void QBit::Finished()
     m_spec_widget->UpdateSeries(6);
     m_spec_widget->ResetZoomLevel();
     m_peak_widget->setSpectraList(m_spec_widget->SpectraList() );
-    m_spec_widget->PickPeaks(5);
+    m_spec_widget->PickPeaks(9);
 }
 
 void QBit::addFile(int index)
@@ -206,9 +207,10 @@ void QBit::LoadSeveral()
     m_files_widget->clearSelection();
 }
 
-void QBit::PeakPicked(int index)
+void QBit::PeakPicked()
 {
     m_peak_widget->setPeaks(m_spec_widget->PeakList());
+    m_peak_widget->setManualPeaks(m_spec_widget->ManualPeakList());
 }
 
 #include "qbit.moc"

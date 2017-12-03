@@ -23,15 +23,35 @@
 
 #include "fit_threaded.h"
 
-FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal), result(false)
+FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal), result(false), m_threshold(0), runable(false)
 {
     setAutoDelete(false);
 }
 
 void FitThread::run()
 { 
+    if(!runable)
+        return;
     result = true;
     m_result = PeakPick::LiberalDeconvulate(Data(), m_start, m_end, m_ratio, m_guess, m_fittype);
+
+    for(int i = 0; i < m_result->parameter.size()/6; ++i)
+    {
+        m_peaks[i]->deconv_x = Parameter()(0+i*6);
+        m_peaks[i]->deconv_y = PeakPick::Signal(Parameter()(0+i*6), Parameter());
+        Vector vector(6);
+        vector(0) = Parameter()(0+i*6);
+        vector(1) = Parameter()(1+i*6);
+        vector(2) = Parameter()(2+i*6);
+        vector(3) = Parameter()(3+i*6);
+        vector(4) = Parameter()(4+i*6);
+        vector(5) = Parameter()(5+i*6);
+        m_peaks[i]->integ_analyt = PeakPick::IntegrateGLFunction(vector);
+    }
+    if((Data()->Y(m_start) > m_threshold) || (Data()->Y(m_end) > m_threshold))
+    {
+        m_result->integral = PeakPick::IntegrateGLSignal(m_result->parameter, m_start, m_end);
+    }
 }
 
 FitThread::~FitThread()

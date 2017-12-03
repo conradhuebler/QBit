@@ -47,6 +47,7 @@ void PickThread::run()
         {
             int pos = PeakPick::FindMaximum(m_raw, m_peaks[i]);
             m_peaks[i].max = pos;
+            PeakPick::IntegrateNumerical(m_raw, m_peaks[i]);
         }
     }
 }

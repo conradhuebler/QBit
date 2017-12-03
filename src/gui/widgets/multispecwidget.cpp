@@ -38,7 +38,7 @@
 #include "multispecwidget.h"
 
 
-MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0), m_scale(2), m_first_zoom(false), m_scale_jobs(0), m_threads(new QThreadPool())
+MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0), m_scale(2), m_first_zoom(false), m_scale_jobs(0), m_threads(new QThreadPool()), m_thresh_factor(10)
 {
     m_chart = new QtCharts::QChart;
     m_chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
@@ -259,7 +259,7 @@ void MultiSpecWidget::PickPeaks(int precision)
                 diff_max = t_diff_max;
             }
         m_pick_threads[i]->setPrecision(precision-1);
-        m_pick_threads[i]->setThreshold(m_threshold[i]/10.0);
+        m_pick_threads[i]->setThreshold(m_threshold[i]/m_thresh_factor);
         m_pick_threads[i]->setRange(start, end);
         m_threads->start(m_pick_threads[i]);
     }
@@ -300,8 +300,8 @@ void MultiSpecWidget::PickPeaks(int precision)
 
         }
         m_peaks_list << peaks;
-        emit PeakPicked(i);
     }
+    emit PeakPicked();
     setZoom(rect);
 }
 
@@ -341,7 +341,7 @@ void MultiSpecWidget::Deconvulate()
             diff_max = t_diff_max;
         }
         
-        
+        std::vector<PeakPick::Peak *> peaks;
         for(int nr = 0; nr < m_peaks_list[i].size(); ++nr)
         {
             const PeakPick::Peak peak = m_peaks_list[i][nr];
@@ -349,6 +349,7 @@ void MultiSpecWidget::Deconvulate()
             {
                 guess_vector.push_back( m_spectra[i]->Data()->X(peak.max ));    
                 index_peak << nr;
+                peaks.push_back(&m_peaks_list[i][nr]);
             }
         }
         
@@ -358,6 +359,8 @@ void MultiSpecWidget::Deconvulate()
         thread->setRange(start, end);
         thread->setData( m_spectra[i]->Raw() );
         thread->setGLRatio(m_ratio->value());
+        thread->setThreshold(m_threshold[i]/m_thresh_factor);
+        thread->setPeaks(peaks);
         if(m_conservative->checkState() == Qt::Checked)
             thread->setFitType(3);
         else if(m_conservative->checkState() == Qt::PartiallyChecked)
@@ -377,6 +380,7 @@ void MultiSpecWidget::Deconvulate()
     //for(int i = 0; i < index_peak; ++i)
     //    m_peak_list[index_peak[i]] = parameter(0+i*6);
     qDeleteAll(threads);
+    emit DeconvulationFinished();
 }
 
 
@@ -417,7 +421,8 @@ void MultiSpecWidget::SingleDeconvulate()
             {
                 FitThread *thread = new FitThread(m_spectra[i]->Name(), i);
                 std::vector<double > guess_vector;
-
+                std::vector<PeakPick::Peak *> peaks;
+                peaks.push_back(&m_peaks_list[i][nr]);
                 guess_vector.push_back( m_spectra[i]->Data()->X(peak.max ));
                 index_peak << nr;
 
@@ -430,6 +435,8 @@ void MultiSpecWidget::SingleDeconvulate()
                 thread->setRange(peak.start-diff, peak.end+diff);
                 thread->setData( m_spectra[i]->Raw() );
                 thread->setGLRatio(m_ratio->value());
+                thread->setThreshold(m_threshold[i]/m_thresh_factor);
+                thread->setPeaks(peaks);
                 if(m_conservative->checkState() == Qt::Checked)
                     thread->setFitType(3);
                 else if(m_conservative->checkState() == Qt::PartiallyChecked)
@@ -438,7 +445,6 @@ void MultiSpecWidget::SingleDeconvulate()
                     thread->setFitType(1);
                 m_threads->start(thread);
                 threads << thread;
-
             }
         }
     }
@@ -449,6 +455,7 @@ void MultiSpecWidget::SingleDeconvulate()
     //for(int i = 0; i < index_peak; ++i)
     //    m_peak_list[index_peak[i]] = parameter(0+i*6);
     qDeleteAll(threads);
+    emit DeconvulationFinished();
 }
 
 
@@ -477,7 +484,7 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
         for(int i = start; i <= end; ++i)
         {
             double x = threads[work]->Data()->X(i);
-            double y = PeakPick::Signal(x, parameter, guess)*m_scale;
+            double y = PeakPick::Signal(x, parameter)*m_scale;
             if(y > threads[work]->Data()->StdDev()/4.0)
                 series->append(x, y + threads[work]->Position() );
         }
@@ -511,13 +518,14 @@ void MultiSpecWidget::FitSingle()
     m_fit.clear();
     QString value_input = m_select->PeakList();
     std::vector<double> entries;
+    std::vector<PeakPick::Peak *> peaks;
     if (!value_input.isEmpty())
     {
         QStringList input = value_input.split(" ");
         for(const QString &str : qAsConst(input))
         {
             if(str.isNull() || str.isEmpty()) continue;
-            entries.push_back(str.toDouble());
+                entries.push_back(str.toDouble());
         }
         
     }
@@ -543,9 +551,24 @@ void MultiSpecWidget::FitSingle()
             diff_min = t_diff_min;
             diff_max = t_diff_max;
         }
+        std::vector<PeakPick::Peak> list;
+        for(int nr = 0; nr < guess.size(); ++nr)
+        {
+            PeakPick::Peak peak;
+            peak.max = guess(nr);
+            peak.start = start;
+            peak.end = end;
+            list.push_back(peak);
+        }
+        m_manual_peaks << list;
+        for(int nr = 0; nr < guess.size(); ++nr)
+            peaks.push_back(&m_manual_peaks[work][nr]);
+
         m_fit_threads[work]->setGuess( guess );
         m_fit_threads[work]->setRange( start, end );
         m_fit_threads[work]->setGLRatio(m_ratio->value());
+        m_fit_threads[work]->setThreshold(m_threshold[work]/m_thresh_factor);
+        m_fit_threads[work]->setPeaks(peaks);
         if(m_conservative->checkState() == Qt::Checked)
             m_fit_threads[work]->setFitType(3);
         else if(m_conservative->checkState() == Qt::PartiallyChecked)
@@ -556,6 +579,7 @@ void MultiSpecWidget::FitSingle()
     }
     m_threads->waitForDone();
     AnalyseFitThreads(m_fit_threads);
+    emit DeconvulationFinished();
     QApplication::restoreOverrideCursor();
 }
 

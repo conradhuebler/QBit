@@ -39,6 +39,7 @@ struct FitResult
     Vector parameter;
     double sum_error = 0;
     double sum_squared = 0;
+    double integral = 0;
     
 };
 
@@ -87,7 +88,7 @@ namespace PeakPick{
             {
                 double x = spec->X(i);
                 double Y = spec->Y(i);
-                double Y_=  Signal(x, parameter, functions);
+                double Y_=  Signal(x, parameter);
                 fvec(j) =  Y - Y_  + err;
                 ++j;
             }
@@ -102,14 +103,14 @@ namespace PeakPick{
             {
                 double x = spec->X(i);
                 double Y = spec->Y(i);
-                double Y_=  Signal(x, parameter, functions);
+                double Y_=  Signal(x, parameter);
                 m_sum_error += Y-Y_;
                 m_sum_squared += (Y-Y_)*(Y-Y_);
             }
             return 0;
         }
 
-        int no_parameter, no_points, start, end, functions;
+        int no_parameter, no_points, start, end;
         double m_sum_error, m_sum_squared;
         const spectrum *spec;
         Vector m_original, m_lock;
@@ -126,7 +127,6 @@ namespace PeakPick{
         functor.start = start;
         functor.end = end;
         functor.spec = spec;
-        functor.functions = guess.size(); 
         Vector parameter(6*guess.size());
         Vector lock(6*guess.size());
         for(int i = 0; i < guess.size(); ++i)
@@ -167,6 +167,7 @@ namespace PeakPick{
         result->parameter = parameter;
         result->sum_error = functor.m_sum_error;
         result->sum_squared = functor.m_sum_squared;
+        result->integral = IntegrateGLFunction(parameter);
         std::cout << parameter << std::endl;
         return result;
     }

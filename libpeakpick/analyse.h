@@ -37,7 +37,11 @@ namespace PeakPick{
     struct Peak{
      int start = 0;
      int max = 0;
+     double deconv_x = 0;
+     double deconv_y = 0;
      int end = 0;
+     double integ_num = 0;
+     double integ_analyt = 0;
     };
     
     
@@ -148,6 +152,35 @@ namespace PeakPick{
             predes = y;
         }
         return peaks;
+    }
+
+
+    inline double IntegrateNumerical(const spectrum *spec, int start, int end)
+    {
+        if(spec->size() < (end - 1) || spec->size() < start)
+            return 0;
+
+        double integ = 0;
+        for(int i = start; i < end - 1; ++i)
+        {
+            double x_0 = spec->X(i);
+            double x_1 = spec->X(i+1);
+            double y_0 = spec->Y(i);
+            double y_1 = spec->Y(i+1);
+            if(std::abs(y_0) < std::abs(y_1))
+                integ += (x_1 - x_0)*y_0 + (x_1 - x_0)*(y_1-y_0)/2.0;
+            else
+                integ += (x_1 - x_0)*y_1 + (x_1 - x_0)*(y_0-y_1)/2.0;
+        }
+
+        return integ;
+    }
+
+    inline double IntegrateNumerical(const spectrum *spec, Peak &peak)
+    {
+        double integ = IntegrateNumerical(spec, peak.start, peak.end);
+        peak.integ_num = integ;
+        return integ;
     }
 }
 

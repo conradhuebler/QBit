@@ -69,5 +69,5 @@ private slots:
     void addFile(int index);
     void LoadItem(const QListWidgetItem * item);
     void LoadSeveral();
-    void PeakPicked(int index);
+    void PeakPicked();
 };

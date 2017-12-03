@@ -27,7 +27,7 @@
 
 #include "peakwidget.h"
 
-PeakWidget::PeakWidget(QWidget *parent) : QWidget(parent)
+PeakWidget::PeakWidget(QWidget *parent) : QWidget(parent), has_manual(false)
 {
     m_peak_list = new QTableWidget;
 
@@ -37,7 +37,7 @@ PeakWidget::PeakWidget(QWidget *parent) : QWidget(parent)
     m_precision = new QSpinBox;
     m_precision->setMinimum(1);
     m_precision->setMaximum(100);
-    m_precision->setValue(12);
+    m_precision->setValue(9);
 
 
     QGridLayout *layout = new QGridLayout;
@@ -56,24 +56,40 @@ PeakWidget::PeakWidget(QWidget *parent) : QWidget(parent)
 void PeakWidget::Update()
 {
     m_peak_list->clear();
-    m_peak_list->setColumnCount(3);
-    int rowCount = 0;
+    m_peak_list->setColumnCount(5);
+    m_peak_list->setRowCount( 0 );
+    m_peak_list->setHorizontalHeaderLabels(QStringList() << tr("Spectrum") << tr("X") << tr("Y") << tr("Integral") << tr("Integral"));
+    BuildList(m_peaks, true);
+    if(has_manual)
+        BuildList(m_manual, false);
+}
 
-    m_peak_list->setHorizontalHeaderLabels(QStringList() << tr("Spectrum") << tr("X") << tr("Y"));
-    for(int i = 0; i < m_peaks->size(); ++i)
+void PeakWidget::BuildList(const QVector<std::vector<PeakPick::Peak> > *peaks, bool value)
+{
+    int rowCount = m_peak_list->rowCount();
+    for(int i = 0; i < peaks->size(); ++i)
     {
-        for(int j = 0; j < (*m_peaks)[i].size(); ++j)
+        for(int j = 0; j < (*peaks)[i].size(); ++j)
         {
-            int pos = (*m_peaks)[i][j].max;
+            int pos = (*peaks)[i][j].max;
             rowCount++;
             m_peak_list->setRowCount( rowCount );
             QTableWidgetItem *newItem = new QTableWidgetItem((*m_spectra)[i]->Name());
-            m_peak_list->setItem(i+j, 0, newItem);
-            newItem = new QTableWidgetItem(QString::number((*m_spectra)[i]->Raw()->X(pos)));
-            m_peak_list->setItem(i+j, 1, newItem);
-            newItem = new QTableWidgetItem(QString::number((*m_spectra)[i]->Raw()->Y(pos)));
-            m_peak_list->setItem(i+j, 2, newItem);
+            m_peak_list->setItem(rowCount - 1, 0, newItem);
+            if(value)
+                newItem = new QTableWidgetItem(QString::number((*m_spectra)[i]->Raw()->X(pos)));
+            else
+                newItem = new QTableWidgetItem(QString::number((*peaks)[i][j].deconv_x));
+            m_peak_list->setItem(rowCount - 1, 1, newItem);
+            if(value)
+                newItem = new QTableWidgetItem(QString::number((*m_spectra)[i]->Raw()->Y(pos)));
+            else
+                newItem = new QTableWidgetItem(QString::number((*peaks)[i][j].deconv_y));
+            m_peak_list->setItem(rowCount - 1, 2, newItem);
+            newItem = new QTableWidgetItem(QString::number((*peaks)[i][j].integ_num));
+            m_peak_list->setItem(rowCount - 1, 3, newItem);
+            newItem = new QTableWidgetItem(QString::number((*peaks)[i][j].integ_analyt));
+            m_peak_list->setItem(rowCount - 1, 4, newItem);
         }
     }
-
 }

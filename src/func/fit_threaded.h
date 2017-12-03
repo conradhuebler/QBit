@@ -29,13 +29,15 @@ public:
     ~FitThread();
     virtual void run() override;
     
-    const PeakPick::spectrum *Data() const { return m_spectrum; }
+    inline const PeakPick::spectrum *Data() const { return m_spectrum; }
+    inline void setPeaks(std::vector<PeakPick::Peak * >peaks) { m_peaks = peaks; runable = true; }
     void setData(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
     QString Name() const { return m_name; }
     int Position() const { return m_position; }
     
     void setGLRatio( double ratio) { m_ratio = ratio; }
     void setGuess( const Vector &guess) { m_guess = guess; }
+    void setThreshold(double threshold) { m_threshold = threshold; }
     Vector Guess() const { return m_guess; }
     Vector Parameter() const; // { return m_result->parameter; }
     double SumError() const; // { return m_result->sum_error; }
@@ -49,10 +51,11 @@ public:
     
 private:
     QString m_name;
-    double m_ratio;
+    double m_ratio, m_threshold;
     const PeakPick::spectrum *m_spectrum;
+    std::vector<PeakPick::Peak *> m_peaks;
     Vector m_parameter, m_guess; 
     int m_start, m_end, m_position, m_fittype;
     FitResult *m_result;
-    bool result;
+    bool result, runable;
 };

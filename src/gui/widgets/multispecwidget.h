@@ -120,6 +120,7 @@ public:
     void clear();
     
     QVector<std::vector<PeakPick::Peak> > * PeakList() { return &m_peaks_list; }
+    QVector<std::vector<PeakPick::Peak> > * ManualPeakList() { return &m_manual_peaks; }
     QVector<NMRSpec *>  * SpectraList() { return &m_spectra; }
     QRectF getZoom() const;
     void setZoom(const QRectF &rect);
@@ -144,7 +145,7 @@ private:
 
 
     QVector<NMRSpec *> m_spectra;
-    QVector<std::vector<PeakPick::Peak> > m_peaks_list;
+    QVector<std::vector<PeakPick::Peak> > m_peaks_list, m_manual_peaks;
     QVector<PickThread * > m_pick_threads;
     QVector< FitThread *> m_fit_threads;
 
@@ -154,7 +155,7 @@ private:
     QVector<PeakCallOut * > m_peak_anno;
 
     int m_files, m_scale_jobs;
-    double m_scale, m_xmin, m_xmax;
+    double m_scale, m_xmin, m_xmax, m_thresh_factor;
     bool m_first_zoom;
     SelectGuess *m_select;
     Vector AnalyseFitThreads(const QVector<FitThread *> &threads);
@@ -174,7 +175,8 @@ private slots:
     
 signals:
     void PeakSelected(const QPointF &point);
-    void PeakPicked(int index);
+    void PeakPicked();
+    void DeconvulationFinished();
 };
 
 
