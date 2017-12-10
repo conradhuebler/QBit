@@ -183,82 +183,74 @@ bool SpectrumLoader::loadFidFile()
         return false;
     
     const int nfft=y.size();
-    kiss_fft_cfg fwd = kiss_fft_alloc(nfft,0,NULL,NULL);
-    kiss_fft_cfg inv = kiss_fft_alloc(nfft,1,NULL,NULL);
+    kiss_fft_cfg fwd1 = kiss_fft_alloc(nfft/2,0,NULL,NULL);
+    kiss_fft_cfg fwd2 = kiss_fft_alloc(nfft/2,0,NULL,NULL);
+    kiss_fft_cfg inv = kiss_fft_alloc(nfft/2,1,NULL,NULL);
 
     
-    std::vector<std::complex<float>> x(nfft, 0.0);
-    std::vector<std::complex<float>> fx(nfft/2, 0.0);
+    std::vector<std::complex<float>> x1(nfft/2, 0.0);
+    std::vector<std::complex<float>> x2(nfft/2, 0.0);
+
+    std::vector<std::complex<float>> fx1(nfft/2, 0.0);
+    std::vector<std::complex<float>> fx2(nfft/2, 0.0);
 
     double size = y.size();
-    for(int i = 0; i < y.size(); ++i)
+    for(int i = 0; i < y.size() - 1; i += 2)
     {
-        x[i] = y(i)/size;
-    }
-    kiss_fft(fwd,(kiss_fft_cpx*)&x[0],(kiss_fft_cpx*)&fx[0]);
-    
-    std::vector<double > raw_spec, spec;
 
-    for (int k=0;k<nfft;++k) 
+        x1[i] = y(i) + y(i + 1);
+        x2[i] = y(i + 1);
+    }
+    kiss_fft(fwd1,(kiss_fft_cpx*)&x1[0],(kiss_fft_cpx*)&fx1[0]);
+    kiss_fft(fwd2,(kiss_fft_cpx*)&x2[0],(kiss_fft_cpx*)&fx2[0]);
+
+    std::vector<double > raw_spec;
+
+    for (int k=0;k<nfft/2 - 2;k += 2)
     {
-         fx[k] = fx[k] * conj(fx[k]);
-         fx[k] *= 1./nfft;
-         float re = fx[k].real();
+         // fx[k] = fx[k] * conj(fx[k]);
+         // fx[k] *= 1./nfft;
+         float re = sqrt((fx1[k].real()*fx1[k].real())* (fx2[k].real()*fx2[k].real())); //+(fx1[k].imag()*fx1[k].imag())); // * sqrt((fx2[k].real()*fx2[k].real())+(fx2[k].imag()*fx2[k].imag()));
+        //float re = fx1[k].real();
          raw_spec.push_back( re );
     }
     
-    kiss_fft_free(fwd);
+    kiss_fft_free(fwd1);
+    kiss_fft_free(fwd2);
     kiss_fft_free(inv);
     
     
     /*
      * All of this is ugly, only time will tell, how to do this physically correct
      */
-    
-    for(int i = 0; i < raw_spec.size(); ++i)
-    {
-//         std::cout << i << "\t" << raw_spec[i] << std::endl;
-        spec.push_back(raw_spec[i]);
-    }
-    Vector spec2 = Vector::Map(&spec[0], nfft); 
-//     original = PeakPick::spectrum(spec2,-15,0);
-     PeakPick::spectrum temp = PeakPick::spectrum(PeakPick::spectrum(spec2,-15,0).getRangedSpectrum(-15.0,-7.5), -15.0,0);
-     Vector lower = temp.getRangedSpectrum(-15.0,-7.5);
-     Vector upper = temp.getRangedSpectrum(-7.5,0.0);
-    
-     Vector s(upper.size() + lower.size());
-     for(int i = 0; i < upper.size(); ++i)
-         s(i) = upper(i);
-     for(int i = 0; i < lower.size(); ++i)
-        s(i + upper.size()) = lower(i);
-    
-    const QString high_field = "##$ABSF1=";
-    const QString low_field = "##$ABSF2=";
-     
-    QFile peakrng( m_path + QDir::separator() + "pdata/1/procs");
-    double min = 15.0;
-    double max = -0;
+
+    Vector spec = Vector::Map(&raw_spec[0], nfft/4);
+    const QString SW_h = "##$SW_h=";
+    const QString TD = "##$TD=";
+    const QString O1 = "##$O1=";
+
+    QFile peakrng( m_path + QDir::separator() + "acqus");
+    double sw_h = 15.0;
+    double td = -0;
+    double o1 = 0;
     if(peakrng.open(QIODevice::ReadOnly))
     {
         QString range = peakrng.readAll();
         QStringList lines = range.split("\n");
-        QString prev;
         for(QString &str : lines)
         {
-            if(str.contains(high_field))
-                min = str.remove((high_field)).toDouble();
-            if(str.contains(low_field))
-                max =str.remove(low_field).toDouble();
+            if(str.contains(SW_h))
+                sw_h = str.remove((SW_h)).toDouble();
+            if(str.contains(TD))
+                td =str.remove(TD).toDouble();
+            if(str.contains(O1))
+                o1 =str.remove(O1).toDouble();
         }
     }
-//     original = PeakPick::spectrum(PeakPick::spectrum(spec2,-15,0).getRangedSpectrum(-7.5, 0.0), -1*min,-1*max);
-    original = PeakPick::spectrum(s, -1*min,-1*max);
+    original = PeakPick::spectrum(spec, -1*(sw_h+o1/2.0)/1E3,-2*(o1-sw_h/2.0)/1E3);
     QStringList path_list  = m_path.split("/");
     
     m_basename = path_list[path_list.size() - 2];
-
-
-
     return true;
 }
 
