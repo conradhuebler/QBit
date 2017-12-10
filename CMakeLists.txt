@@ -73,7 +73,7 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Charts REQUIRED)
 
-include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} eigen/ libpeakpick/)
+include_directories(${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR} libpeakpick/ libpeakpick/eigen/)
 
 set(qbit_core_SRC
                 kissfft/kiss_fft.c
