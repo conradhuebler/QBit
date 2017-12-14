@@ -186,6 +186,7 @@ void QBit::addFile(int index)
 
 void QBit::LoadItem(const QListWidgetItem * item)
 {
+    QRectF zoom = m_spec_widget->getZoom();
     int index = item->data(Qt::UserRole).toInt();
     if(index == m_current_index)
         return;
@@ -193,17 +194,20 @@ void QBit::LoadItem(const QListWidgetItem * item)
     m_spec_widget->addSpectrum(m_files->Spectrum(index));
     Finished();
     m_current_index = index;
+    m_spec_widget->setZoom(zoom);
 }
 
 void QBit::LoadSeveral()
 {
+    QRectF zoom = m_spec_widget->getZoom();
     m_spec_widget->clear();
     for(const QListWidgetItem *item : m_files_widget->selectedItems())
     {
         int index = item->data(Qt::UserRole).toInt();
-        m_spec_widget->addSpectrum(m_files->Spectrum(index));
+        qDebug() << m_spec_widget->addSpectrum(m_files->Spectrum(index));
     }
     Finished();
+    m_spec_widget->setZoom(zoom);
     m_files_widget->clearSelection();
 }
 

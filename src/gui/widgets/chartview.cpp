@@ -195,7 +195,8 @@ void ChartViewPrivate::keyPressEvent(QKeyEvent *event)
 ChartView::ChartView(QtCharts::QChart *chart, bool latex_supported) : m_chart_private(new ChartViewPrivate(chart, this)), m_chart(chart), has_legend(false), connected(false), m_x_axis(QString()), m_y_axis(QString()), m_pending(false), m_lock_scaling(false), m_latex_supported(latex_supported), m_ymax(0)
 {
     setUi();
-    m_chart->legend()->setAlignment(Qt::AlignRight);
+    //m_chart->legend()->setAlignment(Qt::AlignRight);
+    // m_chart->legend()->setVisible(false);
     connect(m_chart_private, SIGNAL(ZoomChanged()), this, SIGNAL(ZoomChanged()));
     connect(m_chart_private, SIGNAL(scaleDown()), this, SIGNAL(scaleDown()));
     connect(m_chart_private, SIGNAL(scaleUp()), this, SIGNAL(scaleUp()));
@@ -218,7 +219,8 @@ ChartView::ChartView() : has_legend(false), connected(false), m_x_axis(QString()
     connect(m_chart_private, SIGNAL(AddRect(const QPointF &, const QPointF &)), this, SIGNAL(AddRect(const QPointF &, const QPointF &)));
     connect(m_chart_private, &ChartViewPrivate::PointDoubleClicked, this, &ChartView::PointDoubleClicked);
     setUi();
-    m_chart->legend()->setAlignment(Qt::AlignRight);
+    // m_chart->legend()->setVisible(false);
+    //m_chart->legend()->setAlignment(Qt::AlignRight);
 }
 
 void ChartView::setUi()

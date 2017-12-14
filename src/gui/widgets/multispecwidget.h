@@ -126,7 +126,7 @@ public:
     void setZoom(const QRectF &rect);
 
 public slots:
-    void addSpectrum(NMRSpec *spectrum);
+    int addSpectrum(NMRSpec *spectrum);
     void UpdateSeries(int tick);
     void ResetZoomLevel(); 
     void ShowPickedPeaks(bool show = true);

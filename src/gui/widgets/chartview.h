@@ -132,7 +132,7 @@ public slots:
     {
        m_vertical_series->replace(0, QPointF(x, m_min));
        m_vertical_series->replace(1, QPointF(x, m_max));
-       m_vertical_series->setName(QString::number(x));
+       m_vertical_series->setName(QString::number(x, 'f', 4));
     }
     
     inline void UpdateView(double min, double max)
@@ -165,7 +165,8 @@ private:
         m_vertical_series->append(start);
         m_vertical_series->append(end);
         chart()->addSeries(m_vertical_series);
-        
+        //chart()->legend()->markers(m_vertical_series).first()->setVisible(false);
+
         m_upper = new QtCharts::QLineSeries;
         m_upper->append(0,0);
         m_upper->append(0,0);
