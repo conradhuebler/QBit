@@ -20,10 +20,16 @@
 
 #include <libpeakpick/deconvulate.h>
 #include <libpeakpick/spectrum.h>
+#include <libpeakpick/glfit.h>
 
 #include "fit_threaded.h"
 
-FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal), result(false), m_threshold(0), runable(false)
+FitThread::FitThread(const QString &name, int position) : m_name(name), m_position(position), m_fittype(PeakPick::Liberal), result(false), m_threshold(0), runable(false), glfit(false)
+{
+    setAutoDelete(false);
+}
+
+FitThread::FitThread( PeakPick::GLFit *fit, const QString &name, int position) : m_fit(fit), m_name(name), m_position(position), m_fittype(PeakPick::Liberal), result(false), m_threshold(0), runable(false)
 {
     setAutoDelete(false);
 }
@@ -33,8 +39,13 @@ void FitThread::run()
     if(!runable)
         return;
     result = true;
-    m_result = PeakPick::LiberalDeconvulate(Data(), m_start, m_end, m_ratio, m_guess, m_fittype);
-
+    if(!glfit)
+    {
+        m_fit = new PeakPick::GLFit(Data(), m_start, m_end, m_ratio, m_fittype);
+        glfit = true;
+    }
+    m_fit->setGuess(m_guess);
+    m_result = Deconvulate(m_fit);
     for(int i = 0; i < m_result->parameter.size()/6; ++i)
     {
         m_peaks[i]->deconv_x = Parameter()(0+i*6);
@@ -48,10 +59,11 @@ void FitThread::run()
         vector(5) = Parameter()(5+i*6);
         m_peaks[i]->integ_analyt = PeakPick::IntegrateGLFunction(vector);
     }
+    /*
     if((Data()->Y(m_start) > m_threshold) || (Data()->Y(m_end) > m_threshold))
     {
         m_result->integral = PeakPick::IntegrateGLSignal(m_result->parameter, m_start, m_end);
-    }
+    }*/
 }
 
 FitThread::~FitThread()
@@ -75,3 +87,8 @@ double FitThread::SumSquared() const
     return m_result->sum_squared;
 }
     
+void FitThread::reFit()
+{
+    m_result = Deconvulate(m_fit);
+    emit FitFinished();
+}

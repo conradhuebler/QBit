@@ -32,10 +32,15 @@
 #include <QApplication>
 
 #include "libpeakpick/peakpick.h"
+#include <libpeakpick/glfit.h>
+
 #include "src/core/filehandler.h"
+#include "src/func/fit_threaded.h"
+
 #include "src/gui/widgets/multispecwidget.h"
 #include "src/gui/widgets/peakwidget.h"
 #include "src/gui/widgets/fileswidget.h"
+#include "src/gui/widgets/glfitlist.h"
 
 #include "qbit.h"
 
@@ -76,6 +81,12 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
 
     m_peak_widget = new PeakWidget;
 
+    m_glfitlist_widget = new GLFitList;
+    QScrollArea *fit_scroll = new QScrollArea;
+    fit_scroll->setWidget(m_glfitlist_widget);
+    fit_scroll->setWidgetResizable(true);
+    fit_scroll->setAlignment(Qt::AlignTop);
+
     m_files_dock = new QDockWidget(tr("Files"));
     m_files_dock->setObjectName(tr("files"));
     m_files_dock->setWidget(m_files_widget);
@@ -84,8 +95,13 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     m_peaks_dock->setObjectName(tr("peaks"));
     m_peaks_dock->setWidget(m_peak_widget);
 
+    m_glfitlist_dock = new QDockWidget(tr("Fit List"));
+    m_glfitlist_dock->setObjectName("glfitlist");
+    m_glfitlist_dock->setWidget(fit_scroll);
+
     addDockWidget(Qt::LeftDockWidgetArea, m_files_dock);
     addDockWidget(Qt::RightDockWidgetArea, m_peaks_dock);
+    addDockWidget(Qt::RightDockWidgetArea, m_glfitlist_dock);
 
     setCentralWidget(m_spec_widget);
 
@@ -96,6 +112,7 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     connect(m_peak_widget, &PeakWidget::ShowPeaks, m_spec_widget, &MultiSpecWidget::ShowPickedPeaks);
     connect(m_spec_widget, &MultiSpecWidget::PeakPicked, this, &QBit::PeakPicked);
     connect(m_spec_widget, &MultiSpecWidget::DeconvulationFinished, this, &QBit::PeakPicked);
+    connect(m_spec_widget, &MultiSpecWidget::DeconvulationFinished, m_glfitlist_widget, &GLFitList::UpdateList);
     connect(m_peak_widget, &PeakWidget::PrecisionChanged, m_spec_widget, &MultiSpecWidget::PickPeaks);
 }
 
@@ -167,6 +184,7 @@ void QBit::Finished()
     m_spec_widget->UpdateSeries(6);
     m_spec_widget->ResetZoomLevel();
     m_peak_widget->setSpectraList(m_spec_widget->SpectraList() );
+    m_glfitlist_widget->setFitList(m_spec_widget->GLFitList() );
     m_spec_widget->PickPeaks(9);
 }
 

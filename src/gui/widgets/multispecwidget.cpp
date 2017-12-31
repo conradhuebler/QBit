@@ -19,8 +19,9 @@
 #include <libpeakpick/spectrum.h>
 #include <libpeakpick/analyse.h>
 #include <libpeakpick/mathhelper.h>
+#include <libpeakpick/glfit.h>
 
-
+#include <QtCore/QPair>
 #include <QtCore/QThreadPool>
 #include <QtWidgets/QGridLayout>
 
@@ -132,7 +133,7 @@ int MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     m_chartview->setXAxis("chemical shift [ppm]");
     m_chartview->setYAxis("Intensity");
         
-    FitThread *fit = new FitThread(spectrum->Name(), m_spectra.size() - 1);
+    QPointer<FitThread >fit = new FitThread(spectrum->Name(), m_spectra.size() - 1);
     fit->setData( m_spectra[m_spectra.size() - 1]->Raw() );
     m_fit_threads << fit;
 
@@ -149,6 +150,9 @@ void MultiSpecWidget::clear()
 {
     qDeleteAll(m_pick_threads);
     m_pick_threads.clear();
+
+    qDeleteAll(m_glfits);
+    m_glfits.clear();
 
     qDeleteAll(m_data_threads);
     m_data_threads.clear();
@@ -310,7 +314,7 @@ void MultiSpecWidget::PickPeaks(int precision)
 
 void MultiSpecWidget::Deconvulate()
 {
-    QVector<FitThread *> threads;
+    QVector<QPointer<FitThread > > threads;
     qDeleteAll(m_fit);
     m_fit.clear();
     double min = m_chartview->XMin();
@@ -322,7 +326,7 @@ void MultiSpecWidget::Deconvulate()
     for(int i = 0; i < m_spectra.size(); ++i)
     {
         
-        FitThread *thread = new FitThread(m_spectra[i]->Name(), i);
+        QPointer<FitThread >thread = new FitThread(m_spectra[i]->Name(), i);
         std::vector<double > guess_vector;
         
         double diff_min = 10, diff_max = 10;
@@ -381,14 +385,14 @@ void MultiSpecWidget::Deconvulate()
     Vector parameter = AnalyseFitThreads(threads);
     //for(int i = 0; i < index_peak; ++i)
     //    m_peak_list[index_peak[i]] = parameter(0+i*6);
-    qDeleteAll(threads);
+    //qDeleteAll(threads);
     emit DeconvulationFinished();
 }
 
 
 void MultiSpecWidget::SingleDeconvulate()
 {
-    QVector<FitThread *> threads;
+    QVector<QPointer< FitThread > > threads;
     qDeleteAll(m_fit);
     m_fit.clear();
     double min = m_chartview->XMin();
@@ -421,7 +425,7 @@ void MultiSpecWidget::SingleDeconvulate()
             const PeakPick::Peak peak = m_peaks_list[i][nr];
             if(peak.max > start && peak.max < end)
             {
-                FitThread *thread = new FitThread(m_spectra[i]->Name(), i);
+                QPointer<FitThread > thread = new FitThread(m_spectra[i]->Name(), i);
                 std::vector<double > guess_vector;
                 std::vector<PeakPick::Peak *> peaks;
                 peaks.push_back(&m_peaks_list[i][nr]);
@@ -456,13 +460,14 @@ void MultiSpecWidget::SingleDeconvulate()
     Vector parameter = AnalyseFitThreads(threads);
     //for(int i = 0; i < index_peak; ++i)
     //    m_peak_list[index_peak[i]] = parameter(0+i*6);
-    qDeleteAll(threads);
+    //qDeleteAll(threads);
     emit DeconvulationFinished();
 }
 
 
-Vector MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
+Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > &threads)
 {
+    QRectF rect = getZoom();
     QString result, last_row;
     result = "Name\t\tPosition\ta\tc\tgamma\tscale\n";
     Vector parameter;
@@ -494,6 +499,29 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
         m_chartview->addSeries(series);
         
         m_fit << series;
+
+        for(int i = 0; i < parameter.size()/6; ++i)
+        {
+            series = new QtCharts::QLineSeries;
+            for(int j = start; j <= end; ++j)
+            {
+                double x = threads[work]->Data()->X(j);
+                double y = PeakPick::SignalSingle(x, parameter, i)*m_scale;
+                //if(y > threads[work]->Data()->StdDev()/4.0)
+                    series->append(x, y + threads[work]->Position() );
+            }
+            series->setName(QString::number(parameter(0)));
+            m_chartview->addSeries(series);
+
+            QPen pen = series->pen();
+            pen.setStyle(Qt::DotLine);
+            pen.setWidth(1);
+            series->setPen(pen);
+
+            m_fit << series;
+        }
+        m_glfits.append( threads[work] );
+        connect(threads[work], &FitThread::FitFinished, this, &MultiSpecWidget::PlotFit);
     }
     
     result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))\n";
@@ -502,8 +530,63 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<FitThread *> &threads)
     FitParameter *fit = new FitParameter(result, this);
     fit->show();
     std::cout << result.toStdString() << std::endl;
+    setZoom(rect);
     return parameter;
 }
+
+
+void MultiSpecWidget::PlotFit()
+{
+    FitThread *thread = qobject_cast<FitThread *>(QObject::sender());
+    Vector parameter = thread->Parameter();
+    int guess = thread->Guess().size();
+    int start = thread->Start();
+    int end = thread->End();
+    /*
+    for(int i = 0; i < guess; ++i)
+        result += thread->Name() + "\t" + QString::number(parameter(0+i*6)) + "\t" + QString::number(parameter(1+i*6)) + "\t" + QString::number(parameter(2+i*6)) + "\t" + QString::number(parameter(3+i*6)) + "\t" + QString::number(parameter(4+i*6)) + "\n";
+    for(int i = 0; i <  guess; ++i)
+        last_row += QString::number(parameter(0+i*6)) + " ";
+    last_row += "\n";
+
+    result += "Sum of Errors = " + QString::number(thread->SumError()) + "... Sum of Squares = " + QString::number(thread->SumSquared()) + "\n";
+*/
+    QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
+
+    for(int i = start; i <= end; ++i)
+    {
+        double x = thread->Data()->X(i);
+        double y = PeakPick::Signal(x, parameter)*m_scale;
+        if(y > thread->Data()->StdDev()/4.0)
+            series->append(x, y + thread->Position() );
+    }
+    series->setName(QString::number(parameter(0)));
+    m_chartview->addSeries(series);
+
+    m_fit << series;
+
+    for(int i = 0; i < parameter.size()/6; ++i)
+    {
+        series = new QtCharts::QLineSeries;
+        for(int j = start; j <= end; ++j)
+        {
+            double x = thread->Data()->X(j);
+            double y = PeakPick::SignalSingle(x, parameter, i)*m_scale;
+            //if(y > threads[work]->Data()->StdDev()/4.0)
+                series->append(x, y + thread->Position() );
+        }
+        series->setName(QString::number(parameter(0)));
+        m_chartview->addSeries(series);
+
+        QPen pen = series->pen();
+        pen.setStyle(Qt::DotLine);
+        pen.setWidth(1);
+        series->setPen(pen);
+
+        m_fit << series;
+    }
+}
+
 
 void MultiSpecWidget::PrepareFit()
 {
@@ -675,7 +758,7 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     {
         guess = Vector::Map(&peak_guess[0], peak_guess.size());
     }
-    FitThread *thread = new FitThread("name", work);
+    QPointer<FitThread > thread = new FitThread("name", work);
     
     thread->setData(m_spectra[work]->Raw());
     thread->setGuess( guess );
@@ -684,7 +767,7 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     thread->setPeaks(peaks);
     thread->run();
     
-        AnalyseFitThreads( QVector<FitThread *>() << thread );
+        AnalyseFitThreads( QVector<QPointer<FitThread > >() << thread );
     
     delete thread;
     /* 

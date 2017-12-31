@@ -21,11 +21,14 @@
 #include <QtWidgets/QWidget>
 
 #include <QtCharts/QtCharts>
+
+#include <QtCore/QPair>
 #include <QtCore/QRunnable>
 #include <QtCore/QPointer>
 
 #include <libpeakpick/spectrum.h>
 #include <libpeakpick/analyse.h>
+#include <libpeakpick/glfit.h>
 
 #include "src/core/nmrspec.h"
 
@@ -38,7 +41,7 @@ class SelectGuess;
 
 class FitThread;
 class PickThread;
-
+class GLFit;
 class PeakCallOut;
 class UpdateThread : public QRunnable
 {
@@ -121,9 +124,10 @@ public:
     
     QVector<std::vector<PeakPick::Peak> > * PeakList() { return &m_peaks_list; }
     QVector<std::vector<PeakPick::Peak> > * ManualPeakList() { return &m_manual_peaks; }
-    QVector<NMRSpec *>  * SpectraList() { return &m_spectra; }
+    QVector<NMRSpec *>  * SpectraList()  { return &m_spectra; }
     QRectF getZoom() const;
     void setZoom(const QRectF &rect);
+    QVector< QPointer<FitThread >  > *GLFitList() { return &m_glfits; }
 
 public slots:
     int addSpectrum(NMRSpec *spectrum);
@@ -147,8 +151,8 @@ private:
     QVector<NMRSpec *> m_spectra;
     QVector<std::vector<PeakPick::Peak> > m_peaks_list, m_manual_peaks;
     QVector<PickThread * > m_pick_threads;
-    QVector< FitThread *> m_fit_threads;
-
+    QVector< QPointer<FitThread > > m_fit_threads;
+    QVector< QPointer<FitThread >  > m_glfits;
     QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit;
     QVector< UpdateThread * > m_data_threads;
 
@@ -158,8 +162,8 @@ private:
     double m_scale, m_xmin, m_xmax, m_thresh_factor;
     bool m_first_zoom;
     SelectGuess *m_select;
-    Vector AnalyseFitThreads(const QVector<FitThread *> &threads);
-    
+    Vector AnalyseFitThreads(const QVector<QPointer< FitThread > > &threads);
+
 private slots:
     void Scale(double factor);
     void Deconvulate();
@@ -172,7 +176,8 @@ private slots:
     void MinChanged(double val);
     void MaxChanged(double val);
     void UpdatePeaks(double factor);
-    
+    void PlotFit();
+
 signals:
     void PeakSelected(const QPointF &point);
     void PeakPicked();

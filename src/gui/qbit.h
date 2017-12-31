@@ -33,6 +33,7 @@ class QTabWidget;
 class MultiSpecWidget;
 class FilesWidget;
 class PeakWidget;
+class GLFitList;
 
 class QListWidgetItem;
 
@@ -53,8 +54,9 @@ private:
     QPointer<MultiSpecWidget > m_spec_widget;
     QPointer<PeakWidget > m_peak_widget;
     QPointer<FilesWidget> m_files_widget;
+    QPointer<GLFitList> m_glfitlist_widget;
     QPointer<QWidget > m_mainwidget;
-    QDockWidget *m_files_dock, *m_peaks_dock;
+    QDockWidget *m_files_dock, *m_peaks_dock, *m_glfitlist_dock;
 
     QHBoxLayout *m_layout;
     int m_current_index; 

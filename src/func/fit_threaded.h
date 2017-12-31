@@ -18,17 +18,26 @@
 
 #pragma once
 
+#include <QtCore/QObject>
 #include <QtCore/QRunnable>
 
-struct FitResult;
+#include <libpeakpick/deconvulate.h>
+#include <libpeakpick/glfit.h>
 
-class FitThread : public QRunnable
+
+class FitThread : public QObject , public QRunnable
 {
+    Q_OBJECT
 public:
-    FitThread(const QString &name, int position); // : m_name(name), m_position(position), m_fittype(PeakPick::Liberal) { setAutoDelete(false); }
+    FitThread(const QString &name, int position);
+    FitThread( PeakPick::GLFit *fit, const QString &name, int position);
+
     ~FitThread();
     virtual void run() override;
     
+    void reFit();
+
+    void setGLFit(PeakPick::GLFit *fit) { m_fit = fit; }
     inline const PeakPick::spectrum *Data() const { return m_spectrum; }
     inline void setPeaks(std::vector<PeakPick::Peak * >peaks) { m_peaks = peaks; runable = true; }
     void setData(const PeakPick::spectrum *spectrum) { m_spectrum = spectrum; }
@@ -39,23 +48,28 @@ public:
     void setGuess( const Vector &guess) { m_guess = guess; }
     void setThreshold(double threshold) { m_threshold = threshold; }
     Vector Guess() const { return m_guess; }
-    Vector Parameter() const; // { return m_result->parameter; }
-    double SumError() const; // { return m_result->sum_error; }
-    double SumSquared() const; // { return m_result->sum_squared; }
+    Vector Parameter() const;
+    double SumError() const;
+    double SumSquared() const;
     void setRange(double start, double end) { m_start = start; m_end = end; }
     
     int Start() const { return m_start; }
     int End() const { return m_end; }
     
     void setFitType(int fittype) { m_fittype = fittype; }
-    
+    PeakPick::GLFit * GLFit() const { return m_fit; }
+
 private:
     QString m_name;
     double m_ratio, m_threshold;
     const PeakPick::spectrum *m_spectrum;
+    PeakPick::GLFit *m_fit;
     std::vector<PeakPick::Peak *> m_peaks;
     Vector m_parameter, m_guess; 
     int m_start, m_end, m_position, m_fittype;
-    FitResult *m_result;
-    bool result, runable;
+    PeakPick::FitResult *m_result;
+    bool result, runable, glfit;
+
+signals:
+    void FitFinished();
 };
