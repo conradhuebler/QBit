@@ -21,6 +21,7 @@
 #include <QtCore/QPointer>
 
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLayout>
 
@@ -61,8 +62,17 @@ GLFitWidget::GLFitWidget(QPointer<FitThread> fitthread, QWidget *parent) :m_fitt
     m_header = new QLabel();
     layout->addWidget(m_header, 0, 0);
     m_add = new QPushButton(tr("+"));
+    m_add->setMaximumSize(30,30);
+    m_add->setFlat(true);
     layout->addWidget(m_add, 0, 1);
+
+    m_param = new QPushButton(tr("info"));
+    m_param->setFlat(true);
+    m_param->setMaximumSize(30,30);
+    layout->addWidget(m_param, 0, 2);
     connect(m_add, &QPushButton::clicked, this, &GLFitWidget::AddFunction);
+    connect(m_param, &QPushButton::clicked, this, &GLFitWidget::ShowParameter);
+
     m_overview->setLayout(layout);
     setUiOverView();
 }
@@ -72,8 +82,11 @@ void GLFitWidget::setUiOverView()
 
     QString text = QString::number(m_glfit->Functions()) + " functions.\n";
     for(int i = 0; i < m_glfit->Functions(); ++i)
+    {
         text += QString::number(m_glfit->X_0(i)) + " ";
-
+        if(i%3 == 0 && i)
+            text += "\n";
+    }
     m_header->setText(text);
 
 }
@@ -93,6 +106,23 @@ void GLFitWidget::AddFunction()
     m_fitthread->reFit();
     m_glfit->Print();
     setUiOverView();
+}
+
+
+void GLFitWidget::ShowParameter()
+{
+    QString result;
+    result += "<table border='1'>";
+    result += "<tr> <th>Name</th> <th>Peak Position</th> <th>a</th> <th>c</th> <th>&gamma;</th> <th>% Gauss: %Lorentzian</th> <th>scale</th> </tr>";
+    Vector parameter;
+
+    parameter = m_glfit->Parameter();
+    for(int i = 0; i < m_glfit->Functions(); ++i)
+        result += "<tr><td>" + m_fitthread->Name() + "</td><td>" + QString::number(parameter(0+i*6)) + "</td><td>" + QString::number(parameter(1+i*6)) + "</td><td>" + QString::number(parameter(2+i*6)) + "</td><td>" + QString::number(parameter(3+i*6)) + "</td><td>" + QString::number(parameter(4+i*6)) + "</td><td>" + QString::number(parameter(5+i*6)) + "</td></tr>";
+    result += "</table>";
+    result += "Sum of Errors = " + QString::number(m_glfit->SumError());
+
+    QMessageBox::information(this, tr("About this fitted peaks"), result);
 }
 
 #include "glfitwidget.moc"

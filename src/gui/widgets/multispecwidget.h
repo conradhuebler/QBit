@@ -182,6 +182,7 @@ signals:
     void PeakSelected(const QPointF &point);
     void PeakPicked();
     void DeconvulationFinished();
+    void Message(const QString &message, const QString &indentifier, int prior);
 };
 
 

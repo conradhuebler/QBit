@@ -14,62 +14,25 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #pragma once
 
-#include <Eigen/Dense>
+#include <QWidget>
 
-#include <QtCore/QPointer>
-
-#include <QtWidgets/QWidget>
-
-#include <libpeakpick/glfit.h>
-
-#include "src/func/fit_threaded.h"
-
-
-typedef Eigen::VectorXd Vector;
-
-class QLabel;
-class QPushButton;
-
-class GLSingleFit : public QWidget
+class LogWidget : public QWidget
 {
     Q_OBJECT
 public:
-    GLSingleFit(int index, const Vector &vector, QWidget *parent = 0);
-
-
-private:
-    Vector m_parameter;
-    QPushButton *m_remove;
-    int m_index;
-};
-
-
-class GLFitWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    explicit GLFitWidget( QPointer<FitThread> fitthread, QWidget *parent = 0);
+    explicit LogWidget(QWidget *parent = 0);
 
 signals:
 
 public slots:
+    void addMessage(const QString &message, const QString &identifier, int prior);
 
 private:
-    PeakPick::GLFit * m_glfit;
-    QPointer<FitThread > m_fitthread;
-    QVector<QPointer<GLSingleFit > > m_list;
-    QWidget *m_fits_widget, *m_overview;
-    QPushButton *m_add, *m_param;
-    void setUiOverView();
-    QLabel *m_header;
-
-private slots:
-    void AddFunction();
-    void ShowParameter();
+    QTabWidget *m_tabs;
+    QMap<QString, int> m_names;
 };
 

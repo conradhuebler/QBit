@@ -41,6 +41,7 @@
 #include "src/gui/widgets/peakwidget.h"
 #include "src/gui/widgets/fileswidget.h"
 #include "src/gui/widgets/glfitlist.h"
+#include "src/gui/widgets/logwidget.h"
 
 #include "qbit.h"
 
@@ -87,6 +88,8 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     fit_scroll->setWidgetResizable(true);
     fit_scroll->setAlignment(Qt::AlignTop);
 
+    m_logwidget = new LogWidget;
+
     m_files_dock = new QDockWidget(tr("Files"));
     m_files_dock->setObjectName(tr("files"));
     m_files_dock->setWidget(m_files_widget);
@@ -99,9 +102,14 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     m_glfitlist_dock->setObjectName("glfitlist");
     m_glfitlist_dock->setWidget(fit_scroll);
 
+    m_logdock = new QDockWidget(tr("Logs and Parameters"));
+    m_logdock->setObjectName(tr("logs"));
+    m_logdock->setWidget(m_logwidget);
+
     addDockWidget(Qt::LeftDockWidgetArea, m_files_dock);
     addDockWidget(Qt::RightDockWidgetArea, m_peaks_dock);
     addDockWidget(Qt::RightDockWidgetArea, m_glfitlist_dock);
+    addDockWidget(Qt::BottomDockWidgetArea, m_logdock);
 
     setCentralWidget(m_spec_widget);
 
@@ -114,6 +122,8 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     connect(m_spec_widget, &MultiSpecWidget::DeconvulationFinished, this, &QBit::PeakPicked);
     connect(m_spec_widget, &MultiSpecWidget::DeconvulationFinished, m_glfitlist_widget, &GLFitList::UpdateList);
     connect(m_peak_widget, &PeakWidget::PrecisionChanged, m_spec_widget, &MultiSpecWidget::PickPeaks);
+    connect(m_spec_widget, &MultiSpecWidget::Message, m_logwidget, &LogWidget::addMessage);
+
 }
 
 

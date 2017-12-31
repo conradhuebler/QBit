@@ -473,16 +473,16 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
     Vector parameter;
     for(int work = 0; work < threads.size(); ++work)
     {
-        
+        QString peaklist;
         parameter = threads[work]->Parameter();
-        int guess = threads[work]->Guess().size();
+        int guess = threads[work]->GLFit()->Functions();
         int start = threads[work]->Start();
         int end = threads[work]->End();
         for(int i = 0; i < guess; ++i)
             result += threads[work]->Name() + "\t" + QString::number(parameter(0+i*6)) + "\t" + QString::number(parameter(1+i*6)) + "\t" + QString::number(parameter(2+i*6)) + "\t" + QString::number(parameter(3+i*6)) + "\t" + QString::number(parameter(4+i*6)) + "\n";
         for(int i = 0; i <  guess; ++i)
-            last_row += QString::number(parameter(0+i*6)) + " ";
-        last_row += "\n";
+            peaklist += QString::number(parameter(0+i*6)) + " ";
+        last_row += peaklist + "\n";
         
         result += "Sum of Errors = " + QString::number(threads[work]->SumError()) + "... Sum of Squares = " + QString::number(threads[work]->SumSquared()) + "\n";
         
@@ -492,7 +492,7 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
         {
             double x = threads[work]->Data()->X(i);
             double y = PeakPick::Signal(x, parameter)*m_scale;
-            if(y > threads[work]->Data()->StdDev()/4.0)
+            if(qAbs(y - threads[work]->Data()->StdDev()/4.0) > 1E-2)
                 series->append(x, y + threads[work]->Position() );
         }
         series->setName(QString::number(parameter(0)));
@@ -507,7 +507,7 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
             {
                 double x = threads[work]->Data()->X(j);
                 double y = PeakPick::SignalSingle(x, parameter, i)*m_scale;
-                //if(y > threads[work]->Data()->StdDev()/4.0)
+                if(qAbs(y - threads[work]->Data()->StdDev()/4.0) > 1E-2)
                     series->append(x, y + threads[work]->Position() );
             }
             series->setName(QString::number(parameter(0)));
@@ -522,13 +522,18 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
         }
         m_glfits.append( threads[work] );
         connect(threads[work], &FitThread::FitFinished, this, &MultiSpecWidget::PlotFit);
+        emit Message(result, threads[work]->Name(), 1);
+        emit Message(peaklist, threads[work]->Name(), 1);
     }
     
     result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))\n";
     result += "Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))\n";
     result += last_row;
-    FitParameter *fit = new FitParameter(result, this);
-    fit->show();
+
+    emit Message(result, "overview", 1);
+
+    // FitParameter *fit = new FitParameter(result, this);
+    // fit->show();
     std::cout << result.toStdString() << std::endl;
     setZoom(rect);
     return parameter;
@@ -537,27 +542,29 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
 
 void MultiSpecWidget::PlotFit()
 {
+    qDeleteAll(m_fit);
+    m_fit.clear();
+
     FitThread *thread = qobject_cast<FitThread *>(QObject::sender());
     Vector parameter = thread->Parameter();
-    int guess = thread->Guess().size();
+    int guess = thread->GLFit()->Functions();
     int start = thread->Start();
     int end = thread->End();
-    /*
+    QString result, peaklist;
     for(int i = 0; i < guess; ++i)
         result += thread->Name() + "\t" + QString::number(parameter(0+i*6)) + "\t" + QString::number(parameter(1+i*6)) + "\t" + QString::number(parameter(2+i*6)) + "\t" + QString::number(parameter(3+i*6)) + "\t" + QString::number(parameter(4+i*6)) + "\n";
     for(int i = 0; i <  guess; ++i)
-        last_row += QString::number(parameter(0+i*6)) + " ";
-    last_row += "\n";
+        peaklist += QString::number(parameter(0+i*6)) + " ";
 
     result += "Sum of Errors = " + QString::number(thread->SumError()) + "... Sum of Squares = " + QString::number(thread->SumSquared()) + "\n";
-*/
+
     QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
 
     for(int i = start; i <= end; ++i)
     {
         double x = thread->Data()->X(i);
         double y = PeakPick::Signal(x, parameter)*m_scale;
-        if(y > thread->Data()->StdDev()/4.0)
+        if(qAbs(y - thread->Data()->StdDev()/4.0) > 1E-2)
             series->append(x, y + thread->Position() );
     }
     series->setName(QString::number(parameter(0)));
@@ -572,7 +579,7 @@ void MultiSpecWidget::PlotFit()
         {
             double x = thread->Data()->X(j);
             double y = PeakPick::SignalSingle(x, parameter, i)*m_scale;
-            //if(y > threads[work]->Data()->StdDev()/4.0)
+            if(qAbs(y - thread->Data()->StdDev()/4.0) > 1E-2)
                 series->append(x, y + thread->Position() );
         }
         series->setName(QString::number(parameter(0)));
@@ -585,6 +592,8 @@ void MultiSpecWidget::PlotFit()
 
         m_fit << series;
     }
+    emit Message(result, thread->Name(), 1);
+    emit Message(peaklist, thread->Name(), 1);
 }
 
 

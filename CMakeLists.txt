@@ -96,6 +96,7 @@ set(qbit_gui
                 src/gui/widgets/peakcallout.cpp
                 src/gui/widgets/glfitwidget.cpp
                 src/gui/widgets/glfitlist.cpp
+                src/gui/widgets/logwidget.cpp
                 src/gui/qbit.cpp
                 src/main.cpp)
 
