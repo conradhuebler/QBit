@@ -469,7 +469,6 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
 {
     QRectF rect = getZoom();
     QString result, last_row;
-    result = "Name\t\tPosition\ta\tc\tgamma\tscale\n";
     Vector parameter;
     for(int work = 0; work < threads.size(); ++work)
     {
@@ -478,13 +477,10 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
         int guess = threads[work]->GLFit()->Functions();
         int start = threads[work]->Start();
         int end = threads[work]->End();
-        for(int i = 0; i < guess; ++i)
-            result += threads[work]->Name() + "\t" + QString::number(parameter(0+i*6)) + "\t" + QString::number(parameter(1+i*6)) + "\t" + QString::number(parameter(2+i*6)) + "\t" + QString::number(parameter(3+i*6)) + "\t" + QString::number(parameter(4+i*6)) + "\n";
         for(int i = 0; i <  guess; ++i)
             peaklist += QString::number(parameter(0+i*6)) + " ";
         last_row += peaklist + "\n";
-        
-        result += "Sum of Errors = " + QString::number(threads[work]->SumError()) + "... Sum of Squares = " + QString::number(threads[work]->SumSquared()) + "\n";
+        result += threads[work]->toHtml() + "<br \>";
         
         QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
         
@@ -522,12 +518,12 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
         }
         m_glfits.append( threads[work] );
         connect(threads[work], &FitThread::FitFinished, this, &MultiSpecWidget::PlotFit);
-        emit Message(result, threads[work]->Name(), 1);
+        emit Message(threads[work]->toHtml(), threads[work]->Name(), 1);
         emit Message(peaklist, threads[work]->Name(), 1);
     }
     
-    result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))\n";
-    result += "Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))\n";
+    result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))<br \>";
+    result += "Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))";
     result += last_row;
 
     emit Message(result, "overview", 1);
@@ -551,12 +547,9 @@ void MultiSpecWidget::PlotFit()
     int start = thread->Start();
     int end = thread->End();
     QString result, peaklist;
-    for(int i = 0; i < guess; ++i)
-        result += thread->Name() + "\t" + QString::number(parameter(0+i*6)) + "\t" + QString::number(parameter(1+i*6)) + "\t" + QString::number(parameter(2+i*6)) + "\t" + QString::number(parameter(3+i*6)) + "\t" + QString::number(parameter(4+i*6)) + "\n";
+
     for(int i = 0; i <  guess; ++i)
         peaklist += QString::number(parameter(0+i*6)) + " ";
-
-    result += "Sum of Errors = " + QString::number(thread->SumError()) + "... Sum of Squares = " + QString::number(thread->SumSquared()) + "\n";
 
     QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
 
@@ -592,7 +585,7 @@ void MultiSpecWidget::PlotFit()
 
         m_fit << series;
     }
-    emit Message(result, thread->Name(), 1);
+    emit Message(thread->toHtml(), thread->Name(), 1);
     emit Message(peaklist, thread->Name(), 1);
 }
 

@@ -58,7 +58,7 @@ public:
     
     void setFitType(int fittype) { m_fittype = fittype; }
     PeakPick::GLFit * GLFit() const { return m_fit; }
-
+    QString toHtml() const;
 private:
     QString m_name;
     double m_ratio, m_threshold;

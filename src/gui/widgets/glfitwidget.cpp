@@ -105,24 +105,14 @@ void GLFitWidget::AddFunction()
     m_glfit->releaseLock();
     m_fitthread->reFit();
     m_glfit->Print();
+    emit m_fitthread->FitFinished();
     setUiOverView();
 }
 
 
 void GLFitWidget::ShowParameter()
 {
-    QString result;
-    result += "<table border='1'>";
-    result += "<tr> <th>Name</th> <th>Peak Position</th> <th>a</th> <th>c</th> <th>&gamma;</th> <th>% Gauss: %Lorentzian</th> <th>scale</th> </tr>";
-    Vector parameter;
-
-    parameter = m_glfit->Parameter();
-    for(int i = 0; i < m_glfit->Functions(); ++i)
-        result += "<tr><td>" + m_fitthread->Name() + "</td><td>" + QString::number(parameter(0+i*6)) + "</td><td>" + QString::number(parameter(1+i*6)) + "</td><td>" + QString::number(parameter(2+i*6)) + "</td><td>" + QString::number(parameter(3+i*6)) + "</td><td>" + QString::number(parameter(4+i*6)) + "</td><td>" + QString::number(parameter(5+i*6)) + "</td></tr>";
-    result += "</table>";
-    result += "Sum of Errors = " + QString::number(m_glfit->SumError());
-
-    QMessageBox::information(this, tr("About this fitted peaks"), result);
+    QMessageBox::information(this, tr("About this fitted peaks"), m_fitthread->toHtml());
 }
 
 #include "glfitwidget.moc"

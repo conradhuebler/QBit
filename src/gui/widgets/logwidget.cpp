@@ -41,7 +41,8 @@ void LogWidget::addMessage(const QString &message, const QString &identifier, in
         QTextEdit *text = new QTextEdit;
         int index = m_tabs->addTab(text, identifier);
         m_names[identifier] = index;
-        text->append(message);
+        if(prior > 0)
+            text->append(message);
     }else
     {
         QTextEdit *text = qobject_cast<QTextEdit *>(m_tabs->widget(m_names[identifier]));

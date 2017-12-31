@@ -90,5 +90,20 @@ double FitThread::SumSquared() const
 void FitThread::reFit()
 {
     m_result = Deconvulate(m_fit);
-    emit FitFinished();
+    //emit FitFinished();
+}
+
+QString FitThread::toHtml() const
+{
+    QString result;
+    result += "<table>";
+    result += "<tr> <th>Name</th> <th>Peak Position</th> <th>a</th> <th>c</th> <th>&gamma;</th> <th>% Gauss: %Lorentzian</th> <th>scale</th> </tr>";
+    Vector parameter;
+
+    parameter = Parameter();
+    for(int i = 0; i < m_fit->Functions(); ++i)
+        result += "<tr><td>" + Name() + "</td><td>" + QString::number(parameter(0+i*6)) + "</td><td>" + QString::number(parameter(1+i*6)) + "</td><td>" + QString::number(parameter(2+i*6)) + "</td><td>" + QString::number(parameter(3+i*6)) + "</td><td>" + QString::number(parameter(4+i*6)) + "</td><td>" + QString::number(parameter(5+i*6)) + "</td></tr>";
+    result += "</table>";
+    result += "Sum of Errors = " + QString::number(SumError()) + "... Sum of Squares = " + QString::number(SumSquared()) + "\n";
+    return result;
 }
