@@ -73,11 +73,11 @@ void ChartViewPrivate::mousePressEvent(QMouseEvent *event)
 
 void ChartViewPrivate::wheelEvent(QWheelEvent* event)
 {
-    if(event->pixelDelta().y() < 0)
+    if(event->angleDelta().y() < 0)
         emit scaleDown();
     else
         emit scaleUp();
-    
+
     QPointF inPoint;
     QPointF chartPoint;
     inPoint.setX(event->x());

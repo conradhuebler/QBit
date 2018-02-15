@@ -54,8 +54,11 @@ class GLFitWidget : public QWidget
     Q_OBJECT
 public:
     explicit GLFitWidget( QPointer<FitThread> fitthread, QWidget *parent = 0);
-
+    ~GLFitWidget();
+    QPointer<FitThread > getFitThread() const { return m_fitthread; }
+    
 signals:
+    void removeItem();
 
 public slots:
 
@@ -64,7 +67,7 @@ private:
     QPointer<FitThread > m_fitthread;
     QVector<QPointer<GLSingleFit > > m_list;
     QWidget *m_fits_widget, *m_overview;
-    QPushButton *m_add, *m_param;
+    QPushButton *m_add, *m_param, *m_rm;
     void setUiOverView();
     QLabel *m_header;
 

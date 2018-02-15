@@ -70,12 +70,26 @@ GLFitWidget::GLFitWidget(QPointer<FitThread> fitthread, QWidget *parent) :m_fitt
     m_param->setFlat(true);
     m_param->setMaximumSize(30,30);
     layout->addWidget(m_param, 0, 2);
+    
+    m_rm = new QPushButton(tr("x"));
+    m_rm->setFlat(true);
+    m_param->setMaximumSize(30,30);
+    //layout->addWidget(m_rm, 0, 3);
+    
     connect(m_add, &QPushButton::clicked, this, &GLFitWidget::AddFunction);
     connect(m_param, &QPushButton::clicked, this, &GLFitWidget::ShowParameter);
-
+    connect(m_param, &QPushButton::clicked, this, &GLFitWidget::removeItem);
+    
     m_overview->setLayout(layout);
     setUiOverView();
 }
+
+GLFitWidget::~GLFitWidget()
+{
+    // delete m_fitthread;
+    // delete m_glfit;
+}
+
 
 void GLFitWidget::setUiOverView()
 {
