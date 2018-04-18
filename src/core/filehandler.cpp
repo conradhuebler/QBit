@@ -95,7 +95,10 @@ bool SpectrumLoader::loadAsciiFile()
             entries.push_back(str.toDouble());
         }
     }
-    
+    if (number == 0) {
+      max = i;
+      number = i;
+    }
     y = Vector::Map(&entries[0], number); 
     original = PeakPick::spectrum(y,-1*min,max); 
     return true;
@@ -320,8 +323,8 @@ bool SpectrumLoader::loadDptFile()
 void SpectrumLoader::run()
 {
     std::cout << "running file checker" << std::endl;
-    if(m_filename.contains("txt"))
-        m_load = loadAsciiFile();
+    if (m_filename.contains("txt") || m_filename.contains("dat"))
+      m_load = loadAsciiFile();
     else if(m_filename.contains("jdf"))
         m_load = loadJEOLFile();
     else if(m_filename.contains("1r"))
@@ -341,8 +344,10 @@ void SpectrumLoader::run()
             PeakPick::Normalise(&original,0,10);
             PeakPick::Normalise(&spectrum, 0, 10);
             PeakPick::SmoothFunction(&spectrum, 12);
-        }else
-            m_nmr = false;
+        } else if (m_filename.contains("dat"))
+          PeakPick::SmoothFunction(&spectrum, 12);
+        else
+          m_nmr = false;
     }
 }
 

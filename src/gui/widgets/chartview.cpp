@@ -342,7 +342,7 @@ void ChartView::forceformatAxis()
     
     int x_ticks = ToolSet::scale(x_max-x_min)/int(ToolSet::scale(x_max-x_min)/ 5) + 1;
     int y_ticks = 0; //scale(y_max-y_min)/int(scale(y_max-y_min)/ 5) + 1;
-    
+
     QtCharts::QValueAxis *y_axis = qobject_cast<QtCharts::QValueAxis *>( m_chart->axisY());
     
     y_axis->setMax(y_max);
