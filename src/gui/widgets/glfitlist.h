@@ -48,6 +48,9 @@ private:
     QVector< QPointer<FitThread >  > * m_glfit_list;
     QVector<QPointer<GLFitWidget> > m_widget_list;
     QVBoxLayout *main_layout;
+    
+private slots:
+    void removeItem();
 
 };
 

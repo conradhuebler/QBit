@@ -39,15 +39,27 @@ PickThread::~PickThread()
 
 void PickThread::run()
 {
-    if(data)
-        m_peaks = PeakPick::PickPeaks(m_data, m_threshold, qPow(2, m_precision-1));
+    std::vector<PeakPick::Peak> peaks_up, peaks_down;
+    if (data) {
+        PeakPick::spectrum* sign = new PeakPick::spectrum(m_data);
+        sign->InvertSgn();
+        peaks_up = PeakPick::PickPeaks(m_data, m_threshold, qPow(2, m_precision - 1));
+        peaks_down = PeakPick::PickPeaks(sign, m_threshold, qPow(2, m_precision - 1));
+    }
     if(raw)
     {
-        for(int i = 0; i < m_peaks.size(); ++i)
-        {
-            int pos = PeakPick::FindMaximum(m_raw, m_peaks[i]);
-            m_peaks[i].max = pos;
-            PeakPick::IntegrateNumerical(m_raw, m_peaks[i]);
+        for (int i = 0; i < peaks_up.size(); ++i) {
+            int pos = PeakPick::FindMaximum(m_raw, peaks_up[i]);
+            peaks_up[i].max = pos;
+            PeakPick::IntegrateNumerical(m_raw, peaks_up[i]);
+        }
+
+        for (int i = 0; i < peaks_down.size(); ++i) {
+            int pos = PeakPick::FindMinimum(m_raw, peaks_down[i]);
+            peaks_down[i].max = pos;
+            PeakPick::IntegrateNumerical(m_raw, peaks_down[i]);
         }
     }
+    m_peaks.insert(m_peaks.end(), peaks_up.begin(), peaks_up.end());
+    m_peaks.insert(m_peaks.end(), peaks_down.begin(), peaks_down.end());
 }

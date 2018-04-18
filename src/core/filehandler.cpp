@@ -186,48 +186,54 @@ bool SpectrumLoader::loadFidFile()
         return false;
     
     const int nfft=y.size();
-    kiss_fft_cfg fwd1 = kiss_fft_alloc(nfft/2,0,NULL,NULL);
-    kiss_fft_cfg fwd2 = kiss_fft_alloc(nfft/2,0,NULL,NULL);
-    kiss_fft_cfg inv = kiss_fft_alloc(nfft/2,1,NULL,NULL);
+    const int fill = 2;
 
-    
-    std::vector<std::complex<float>> x1(nfft/2, 0.0);
-    std::vector<std::complex<float>> x2(nfft/2, 0.0);
+    kiss_fft_cfg fwd1 = kiss_fft_alloc(nfft*fill,0,NULL,NULL);
+    kiss_fft_cfg fwd2 = kiss_fft_alloc(nfft*fill,0,NULL,NULL);
+    // kiss_fft_cfg inv = kiss_fft_alloc(nfft/2,1,NULL,NULL);
 
-    std::vector<std::complex<float>> fx1(nfft/2, 0.0);
-    std::vector<std::complex<float>> fx2(nfft/2, 0.0);
+    std::vector<std::complex<float>> x1(nfft*fill, 0.0);
+    std::vector<std::complex<float>> x2(nfft*fill, 0.0);
+
+    std::vector<std::complex<float>> fx1(nfft*fill, 0.0);
+    std::vector<std::complex<float>> fx2(nfft*fill, 0.0);
 
     double size = y.size();
-    for(int i = 0; i < y.size() - 1; i += 2)
+    for(int i = 0; i < y.size()/2; i = i + 1)
     {
 
-        x1[i] = y(i) + y(i + 1);
-        x2[i] = y(i + 1);
+        x1[i] = y(i);
+        // x1[y.size()/2 + i - 1] = 0;
+        // x1[y.size() + i - 1] = 0;
+
+        x2[i] = y(y.size()/2  + i - 1);
+        // x2[y.size()/2 + i - 1] = 0;
+        // x2[y.size() + i - 1] = 0;
     }
     kiss_fft(fwd1,(kiss_fft_cpx*)&x1[0],(kiss_fft_cpx*)&fx1[0]);
     kiss_fft(fwd2,(kiss_fft_cpx*)&x2[0],(kiss_fft_cpx*)&fx2[0]);
-
+    std::cout << " fourier transform finished ... " << std::endl;
     std::vector<double > raw_spec;
 
-    for (int k=0;k<nfft/2 - 2;k += 2)
+    //for (int k=0;k<nfft/2 - 2;k += 2)
+    //for (int k=nfft*fill/2.0;k < nfft*fill ;++k)
+    for(int k = 0; k < nfft*fill/2; ++k)
     {
-         // fx[k] = fx[k] * conj(fx[k]);
-         // fx[k] *= 1./nfft;
-         float re = sqrt((fx1[k].real()*fx1[k].real())* (fx2[k].real()*fx2[k].real())); //+(fx1[k].imag()*fx1[k].imag())); // * sqrt((fx2[k].real()*fx2[k].real())+(fx2[k].imag()*fx2[k].imag()));
-        //float re = fx1[k].real();
+         // float re = fx1[k].real();
+         float re = fx1[k].real();
          raw_spec.push_back( re );
     }
     
     kiss_fft_free(fwd1);
     kiss_fft_free(fwd2);
-    kiss_fft_free(inv);
+    // kiss_fft_free(inv);
     
     
     /*
      * All of this is ugly, only time will tell, how to do this physically correct
      */
 
-    Vector spec = Vector::Map(&raw_spec[0], nfft/4);
+    Vector spec = Vector::Map(&raw_spec[0], nfft*fill/2);
     const QString SW_h = "##$SW_h=";
     const QString TD = "##$TD=";
     const QString O1 = "##$O1=";

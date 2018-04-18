@@ -47,4 +47,15 @@ void GLFitList::UpdateList()
     }
 }
 
+void GLFitList::removeItem()
+{
+ /*   QPointer<GLFitWidget > widget = qobject_cast<GLFitWidget *>(QObject::sender());
+    int index = (*m_glfit_list).indexOf(widget->getFitThread());
+    m_widget_list.remove(m_widget_list.indexOf(widget));
+    m_glfit_list->remove(index);
+    main_layout->removeWidget(widget);*/
+//     delete widget;
+}
+
+
 #include "glfitlist.moc"
