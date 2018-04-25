@@ -25,10 +25,11 @@
 #include <bitset>
 
 #include <QtCore/QCollator>
+#include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-#include <QtCore/QDebug>
+#include <QtCore/QLocale>
 #include <QtCore/QThreadPool>
 
 #include <libpeakpick/spectrum.h>
@@ -73,6 +74,7 @@ bool SpectrumLoader::loadAsciiFile()
     double max = 0;
     int i = 1;
     int number = 0;
+    bool nmr = false;
     std::vector<double> entries;
     for(const QString &str : filecontent)
     {
@@ -83,6 +85,7 @@ bool SpectrumLoader::loadAsciiFile()
             QStringList items = str.split(" ");
             min = items[3].toDouble();
             max = items[6].toDouble();
+            nmr = true;
         }
         if(str.contains("SIZE"))
         {
@@ -92,7 +95,18 @@ bool SpectrumLoader::loadAsciiFile()
         if(!str.contains("#"))
         {
             i++;
-            entries.push_back(str.toDouble());
+            if (nmr)
+                entries.push_back(str.toDouble());
+            else {
+                QStringList list = QString(str).split("\t");
+                if (list.size() < 2)
+                    continue;
+                QLocale local;
+                entries.push_back(local.toDouble(list[1]));
+                max = local.toDouble(list[0]);
+                if (i == 1)
+                    min = local.toDouble(list[0]);
+            }
         }
     }
     if (number == 0) {
