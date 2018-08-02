@@ -521,9 +521,9 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
         emit Message(threads[work]->toHtml(), threads[work]->Name(), 1);
         emit Message(peaklist, threads[work]->Name(), 1);
     }
-    
-    result += "Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))<br \>";
-    result += "Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))";
+
+    result += "<p>Gaussian function defined as: 1/(a*sqrt(2*pi))*exp(-pow((x-x_0),2)/(2*pow(c,2)))</p>";
+    result += "<p>Lorentzian function defined as: 1/pi*(0.5*gamma)/(pow(x-x_0,2)+pow(0.5*gamma,2))</p>";
     result += last_row;
 
     emit Message(result, "overview", 1);
