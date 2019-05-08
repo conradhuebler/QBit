@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -696,7 +696,8 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     std::vector<PeakPick::Peak *> peaks;
     int start = 0, end = 0, work;
     double diff_min = 10, diff_max = 10;
-        bool inrange = false;    
+    bool inrange = false;
+    qDebug() << m_spectra.size();
     for(work = 0; work < m_spectra.size() || !inrange; ++work)
     {
 
@@ -768,9 +769,9 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     thread->setGLRatio(m_ratio->value());
     thread->setPeaks(peaks);
     thread->run();
-    
-        AnalyseFitThreads( QVector<QPointer<FitThread > >() << thread );
-    
+
+    AnalyseFitThreads(QVector<QPointer<FitThread>>() << thread);
+
     delete thread;
     /* 
               qDebug() << m_spectra[0]->PosOfPoint(min) << m_spectra[0]->PosOfPoint(max); 

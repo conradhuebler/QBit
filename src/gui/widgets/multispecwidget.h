@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ public:
     inline void run() override
     {
         m_series->clear();
-
+        //m_tick =50;
         if(qAbs(m_xmax -m_xmin) < 2 || m_spectrum->size() < 10000)
             TightAdd();
         else
