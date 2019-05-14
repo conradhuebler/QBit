@@ -4,7 +4,7 @@ environment:
   matrix:
   - qt: C:\Qt\5.12\mingw73_64\bin
     PLATFORM: x64
-    COMPILER: mingw
+    COMPILER: MinGW-w64
     
     
 clone_depth: 1
