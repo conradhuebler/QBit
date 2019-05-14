@@ -12,7 +12,8 @@ init:
   - set TAG_NAME=%appveyor_build_version%
   - set QTDIR=C:\Qt\5.12.2\msvc2017_64
   - set PATH=C:\Qt\5.12.2\msvc2017_64;%PATH%
-  - set PATH=%PATH:C:\Program Files\Git\usr\bin;%
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+
 build_script:
   - call "scripts/build_windows.cmd"
 
