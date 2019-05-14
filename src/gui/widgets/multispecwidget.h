@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@ public:
     {
         m_series->clear();
 
-        if (qAbs(m_xmax - m_xmin) < 8 || m_spectrum->size() < 10000)
+        m_tick = 50;
+        if (qAbs(m_xmax - m_xmin) < 8 || m_spectrum->size() < 15000)
             TightAdd();
         else
             LooseAdd();
@@ -79,15 +80,14 @@ private:
             if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
                 continue;
 
-            if(m_spectrum->Y(i)*m_scaling > m_spectrum->StdDev() || crude == 48 || tight == 24 || i == 0)
-            {
+            if (m_spectrum->Y(i) * m_scaling * 50 > m_spectrum->StdDev() || crude == 36 || tight == 18 || i == 0) {
                 if(qAbs(m_xmax -m_xmin) < 2)
                     m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
                 else
                     m_series->append(QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
-                if(crude == 48)
+                if (crude == 36)
                     crude = 0;
-                if(tight == 24)
+                if (tight == 18)
                     tight = 0;
             }
             count++;
@@ -97,8 +97,8 @@ private:
     }
     inline void TightAdd()
     {
-        for(int i = 0; i < m_spectrum->size(); ++i)  
-        {
+        int stepsize = 5;
+        for (int i = 0; i < m_spectrum->size(); i += stepsize) {
             if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
                 continue;
 

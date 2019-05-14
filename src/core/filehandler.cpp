@@ -1,6 +1,6 @@
 /*
  * <fileHandler loads files.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,36 +76,65 @@ bool SpectrumLoader::loadAsciiFile()
     int number = 0;
     bool nmr = false;
     std::vector<double> entries;
-    for(const QString &str : filecontent)
-    {
-        if(str.isEmpty() || str.isNull())
-            continue;
-        if(str.contains("LEFT"))
-        {
-            QStringList items = str.split(" ");
-            min = items[3].toDouble();
-            max = items[6].toDouble();
-            nmr = true;
+
+    if (!filecontent.size())
+        return false;
+
+    if (filecontent.first().contains("SPECMAN_ASCII(ACD)")) {
+        bool content = false;
+        for (const QString& str : filecontent) {
+            if (!content) {
+
+                if (str.contains("PointsCount")) {
+                    QStringList items = str.split(" ");
+                    number = items[2].toInt();
+                }
+                if (str.contains("FirstX")) {
+                    QStringList items = str.split(" ");
+                    min = items[2].toDouble();
+                }
+                if (str.contains("LastX")) {
+                    QStringList items = str.split(" ");
+                    max = items[2].toDouble() * -1;
+                    content = true;
+                }
+            } else {
+                QStringList items = str.split("\t");
+                if (items.size() == 2) {
+                    entries.push_back(items[1].toDouble());
+                }
+            }
         }
-        if(str.contains("SIZE"))
-        {
-            QStringList items = str.split(" ");
-            number = items[3].toInt();
-        }
-        if(!str.contains("#"))
-        {
-            i++;
-            if (nmr)
-                entries.push_back(str.toDouble());
-            else {
-                QStringList list = QString(str).split("\t");
-                if (list.size() < 2)
-                    continue;
-                QLocale local;
-                entries.push_back(local.toDouble(list[1]));
-                max = local.toDouble(list[0]);
-                if (i == 1)
-                    min = local.toDouble(list[0]);
+        number = entries.size();
+    } else {
+
+        for (const QString& str : filecontent) {
+            if (str.isEmpty() || str.isNull())
+                continue;
+            if (str.contains("LEFT")) {
+                QStringList items = str.split(" ");
+                min = items[3].toDouble();
+                max = items[6].toDouble();
+                nmr = true;
+            }
+            if (str.contains("SIZE")) {
+                QStringList items = str.split(" ");
+                number = items[3].toInt();
+            }
+            if (!str.contains("#")) {
+                i++;
+                if (nmr)
+                    entries.push_back(str.toDouble());
+                else {
+                    QStringList list = QString(str).split("\t");
+                    if (list.size() < 2)
+                        continue;
+                    QLocale local;
+                    entries.push_back(local.toDouble(list[1]));
+                    max = local.toDouble(list[0]);
+                    if (i == 1)
+                        min = local.toDouble(list[0]);
+                }
             }
         }
     }

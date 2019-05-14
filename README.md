@@ -1,4 +1,4 @@
-Linux Build via Travis-CI: [![Build Status](https://travis-ci.org/conradhuebler/QBit.svg?branch=master)](https://travis-ci.org/conradhuebler/QBit) Windows Build via Appveyor-CI [![Build status](https://ci.appveyor.com/api/projects/status/lma7hd13mktg6o45?svg=true)](https://ci.appveyor.com/project/contra98/qbit)
+Linux Build via Travis-CI: [![Build Status](https://travis-ci.org/conradhuebler/QBit.svg?branch=master)](https://travis-ci.org/conradhuebler/QBit) Windows Build via Appveyor-CI [![Build status](https://ci.appveyor.com/api/projects/status/lma7hd13mktg6o45?svg=true)](https://ci.appveyor.com/project/conradhuebler/qbit)
 
 
 # QBit 
@@ -11,7 +11,7 @@ git clones automatically Eigen. Eigen is used as non-linear optimimization tool.
 To compile QBit you will need CMake 3 or newer and a C++14-capable compiler.
 
 QBit has been successfully compilied with: 
-- GCC 6.3 
+- GCC 6.3 , 7.x and 8.x
 - Clang 4.0
 
 on Linux systems and with
@@ -23,7 +23,7 @@ on Windows systems.
 
 To obtain QBit use git:
 ```sh
-git clone --recursive git@github.com:contra98/QBit.git
+git clone --recursive git@github.com:conradhuebler/QBit.git
 cd QBit
 mkdir build
 cd build
@@ -35,7 +35,7 @@ make
 
 ### Loading files
 
-Load NMR spectrum, either exported as txt file via TopSpin or open directly 1r files. Please provide a complete directory structure for Bruker NMR files. A directory, including all subdirectories can be added and all 1r files be loaded into the list view. Single spectra can be loaded via double click in list, multiple spectra can be loaded by selecting them in the list view and then pushing **Open Selected**
+Load NMR spectrum, either exported as txt file via TopSpin or ACDLabs or open directly 1r files. Please provide a complete directory structure for Bruker NMR files. A directory, including all subdirectories can be added and all 1r files be loaded into the list view. Single spectra can be loaded via double click in list, multiple spectra can be loaded by selecting them in the list view and then pushing **Open Selected**
 
 ### Display and Zoom
 
