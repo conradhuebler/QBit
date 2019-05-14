@@ -17,7 +17,7 @@ mkdir QBit
 copy QBit.exe QBit
 cd QBit
 windeployqt --release QBit.exe
-copy C:\Qt\5.12.2\mingw73_64\bin\libgomp-1.dll  "%project_dir%\build\QBit\libgomp-1.dll
+copy C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1\bin\libgomp-1.dll  "%project_dir%\build\QBit\libgomp-1.dll
 
 echo Copying project files for archival...
 copy "%project_dir%\README.md" "%project_dir%\build\QBit\README.md"

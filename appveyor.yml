@@ -1,8 +1,8 @@
-image: MinGW
+image: Visual Studio 2017
 
 environment:
   matrix:
-  - qt: C:\Qt\5.12\mingw73_64\bin
+  - qt: C:\Qt\5.12.2\mingw73_64\bin
     PLATFORM: x64
     COMPILER: MinGW-w64
     
@@ -11,8 +11,8 @@ clone_depth: 1
 
 init:
   - set TAG_NAME=%appveyor_build_version%
-  - set PATH=C:\Qt\5.12\mingw73_64\bin;%PATH%
-  - set PATH=C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0;%PATH%
+  - set PATH=C:\Qt\5.12.2\mingw73_64\bin;%PATH%
+  - set PATH=C:\mingw-w64\x86_64-7.2.0-posix-seh-rt_v5-rev1;%PATH%
   - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
 build_script:
   - call "scripts/build_windows.cmd"
