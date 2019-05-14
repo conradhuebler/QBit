@@ -3,4 +3,4 @@
 	url = https://github.com/bazaar-projects/kissfft
 [submodule "libpeakpick"]
 	path = libpeakpick
-	url = https://github.com/contra98/libpeakpick
+	url = https://github.com/conradhuebler/libpeakpick
