@@ -52,7 +52,7 @@ public:
     {
         m_series->clear();
 
-        if(qAbs(m_xmax -m_xmin) < 2 || m_spectrum->size() < 10000)
+        if (qAbs(m_xmax - m_xmin) < 8 || m_spectrum->size() < 10000)
             TightAdd();
         else
             LooseAdd();

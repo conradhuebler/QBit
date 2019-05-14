@@ -113,6 +113,9 @@ bool SpectrumLoader::loadAsciiFile()
       max = i;
       number = i;
     }
+    if (!entries.size())
+        return false;
+
     y = Vector::Map(&entries[0], number); 
     original = PeakPick::spectrum(y,-1*min,max); 
     return true;
@@ -343,17 +346,20 @@ bool SpectrumLoader::loadDptFile()
 void SpectrumLoader::run()
 {
     std::cout << "running file checker" << std::endl;
-    if (m_filename.contains("txt") || m_filename.contains("dat"))
-      m_load = loadAsciiFile();
-    else if(m_filename.contains("jdf"))
+
+    QFileInfo f(m_filename);
+
+    if (f.baseName().contains("txt") || f.baseName().contains("dat"))
+        m_load = loadAsciiFile();
+    else if (f.baseName().contains("jdf"))
         m_load = loadJEOLFile();
-    else if(m_filename.contains("1r"))
+    else if (f.baseName().contains("1r"))
         m_load = loadNMRFile();
-    else if(m_filename.contains("fid"))
+    else if (f.baseName().contains("fid"))
         m_load = loadFidFile();
-    else if(m_filename.contains("dpt"))
+    else if (f.baseName().contains("dpt"))
         m_load = loadDptFile();
-    else if(m_filename.contains("SPA"))
+    else if (f.baseName().contains("SPA"))
         m_load = loadFidFile();
 
     if(m_load)
