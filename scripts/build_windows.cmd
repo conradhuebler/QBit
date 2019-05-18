@@ -12,16 +12,16 @@ cmake --build . --config Release
 
 
 echo Packaging...
-cd %project_dir%\build
+cd %project_dir%\build\Release
 mkdir QBit
 copy QBit.exe QBit
 cd QBit
 windeployqt --release QBit.exe
 
 echo Copying project files for archival...
-copy "%project_dir%\README.md" "%project_dir%\build\QBit\README.md"
-copy "%project_dir%\LICENSE.md" "%project_dir%\build\QBit\LICENSE.md"
+copy "%project_dir%\README.md" "%project_dir%\build\Release\QBit\README.md"
+copy "%project_dir%\LICENSE.md" "%project_dir%\build\Release\QBit\LICENSE.md"
 
 echo Packaging portable archive...
 cd ..
-7z a QBit_nightly_%TAG_NAME%_windows.zip 'C:\projects\qbit\build'
+7z a QBit_nightly_%TAG_NAME%_windows.zip QBit
