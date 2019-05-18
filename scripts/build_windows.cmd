@@ -24,5 +24,4 @@ copy "%project_dir%\LICENSE.md" "%project_dir%\build\QBit\LICENSE.md"
 
 echo Packaging portable archive...
 cd ..
-cd ..
-7z a QBit_nightly_%TAG_NAME%_windows.zip build
+7z a QBit_nightly_%TAG_NAME%_windows.zip 'C:\projects\qbit\build'
