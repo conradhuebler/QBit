@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <charts.h>
+
 #include <libpeakpick/spectrum.h>
 #include <libpeakpick/analyse.h>
 #include <libpeakpick/mathhelper.h>
@@ -31,21 +33,26 @@
 #include "src/func/fit_threaded.h"
 #include "src/func/pick_threaded.h"
 
-#include "chartview.h"
-#include "src/gui/dialogs/selectguess.h"
+#include "peakposcallout.h"
 #include "src/gui/dialogs/fitparameter.h"
-#include "peakcallout.h"
+#include "src/gui/dialogs/selectguess.h"
 
 #include "multispecwidget.h"
 
 
 MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0), m_scale(2), m_first_zoom(false), m_scale_jobs(0), m_threads(new QThreadPool()), m_thresh_factor(10)
 {
-    m_chart = new QtCharts::QChart;
-    m_chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
-    
-    m_chartview = new ChartView(m_chart, true);
-    
+
+    m_chartview = new ChartView();
+    m_chartview->setVerticalLineEnabled(true);
+    m_chartview->setSelectionStrategie(2);
+    m_chartview->setAnimationEnabled(false);
+
+    m_chart = m_chartview->Chart();
+    m_chart->legend()->setVisible(true);
+    m_chart->legend()->setAlignment(Qt::AlignTop);
+    //m_chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
+
     QGridLayout *layout = new QGridLayout;
     
     QHBoxLayout *toolbar = new QHBoxLayout;
@@ -112,7 +119,7 @@ int MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     
     m_xmin = qMin(m_xmin, spectrum->Data()->XMin());
     m_xmax = qMax(m_xmax, spectrum->Data()->XMax());
-    
+    qDebug() << m_xmin << m_xmax;
     QPointer<QtCharts::QLineSeries > spec = new QtCharts::QLineSeries;
     spec->setName(spectrum->Name());
     spec->setUseOpenGL(true);
@@ -141,6 +148,8 @@ int MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     pick->setData( m_spectra[m_spectra.size() - 1]->Data() );
     pick->setRaw( m_spectra[m_spectra.size() - 1]->Raw() );
     m_pick_threads << pick;
+
+    m_chart->legend()->setVisible(true);
 
     m_files++;
     return m_files;
@@ -172,12 +181,12 @@ void MultiSpecWidget::clear()
 
 QRectF MultiSpecWidget::getZoom() const
 {
-    return QRectF(QPointF(m_chartview->XMin(), m_chartview->YMax()), QPointF(m_chartview->XMax(), m_chartview->YMin()));
+    return QRectF(QPointF(m_chartview->XMinRange(), m_chartview->YMaxRange()), QPointF(m_chartview->XMaxRange(), m_chartview->YMinRange()));
 }
 
 void MultiSpecWidget::setZoom(const QRectF &rect)
 {
-    m_chartview->setX(rect.topLeft().x(), rect.bottomRight().x());
+    m_chartview->setXRange(rect.topLeft().x(), rect.bottomRight().x());
     // m_chartview->setY(rect.bottomRight().y(), rect.topLeft().y());
     m_chartview->setYMax(rect.topLeft().y());
     Scale(1);
@@ -187,7 +196,7 @@ void MultiSpecWidget::ResetZoomLevel()
 {
     m_chartview->formatAxis();
     m_chartview->setYMax(m_spectrum.size() + 2);
-    m_chartview->setX(m_xmin, m_xmax);
+    m_chartview->setXRange(m_xmin, m_xmax);
     UpdateSeries(6);
 }
 
@@ -198,7 +207,7 @@ void MultiSpecWidget::UpdateSeries(int tick)
     {
         m_data_threads[j]->setScaling(m_scale);
         m_data_threads[j]->setTick( tick );
-        m_data_threads[j]->setRange(m_chartview->XMin(), m_chartview->XMax());
+        m_data_threads[j]->setRange(m_chartview->XMinRange(), m_chartview->XMaxRange());
         m_threads->start(m_data_threads[j]);
         m_threshold << m_spectra[j]->Data()->Threshold();
     }
@@ -207,8 +216,8 @@ void MultiSpecWidget::UpdateSeries(int tick)
         m_chartview->setYMax(m_spectrum.size() + 2);
     else
         m_first_zoom = true;
-    
-    m_chartview->UpdateView(-1, m_spectrum.size() + 2);
+
+    m_chartview->setYRange(-1, m_spectrum.size() + 2);
 }
 
 void MultiSpecWidget::Scale(double factor)
@@ -252,8 +261,8 @@ void MultiSpecWidget::PickPeaks(int precision)
             {
                 double Xi = m_spectra[i]->Data()->X(j);
 
-                double t_diff_min = qAbs(Xi-m_chartview->XMin());
-                double t_diff_max = qAbs(Xi-m_chartview->XMax());
+                double t_diff_min = qAbs(Xi - m_chartview->XMinRange());
+                double t_diff_max = qAbs(Xi - m_chartview->XMaxRange());
 
                 if( t_diff_min < diff_min)
                     start = j;
@@ -296,6 +305,7 @@ void MultiSpecWidget::PickPeaks(int precision)
             */
 
             QPointF point(m_spectra[i]->Raw()->X((peak.max)), i+1); //(m_spectra[i]->Raw()->Y(peak.max)*m_scale*1.1));
+            /*
             PeakCallOut *annotation = new PeakCallOut(m_chart);
                     annotation->setText(QString("%1").arg(m_spectra[i]->Raw()->X(peak.max)), point);
                     annotation->setAnchor(QPointF(m_spectra[i]->Raw()->X(peak.max), i+1)); //(m_spectra[i]->Raw()->Y(peak.max)*m_scale*1.1)));
@@ -303,7 +313,7 @@ void MultiSpecWidget::PickPeaks(int precision)
                     annotation->updateGeometry();
                     annotation->show();
             m_peak_anno.append( annotation);
-
+            */
         }
         m_peaks_list << peaks;
     }
@@ -317,8 +327,8 @@ void MultiSpecWidget::Deconvulate()
     QVector<QPointer<FitThread > > threads;
     qDeleteAll(m_fit);
     m_fit.clear();
-    double min = m_chartview->XMin();
-    double max = m_chartview->XMax();
+    double min = m_chartview->XMinRange();
+    double max = m_chartview->XMaxRange();
     int start = 0, end = 0;
     
     QVector<int> index_peak;
@@ -395,8 +405,8 @@ void MultiSpecWidget::SingleDeconvulate()
     QVector<QPointer< FitThread > > threads;
     qDeleteAll(m_fit);
     m_fit.clear();
-    double min = m_chartview->XMin();
-    double max = m_chartview->XMax();
+    double min = m_chartview->XMinRange();
+    double max = m_chartview->XMaxRange();
     int start = 0, end = 0;
 
     QVector<int> index_peak;
@@ -626,10 +636,10 @@ void MultiSpecWidget::FitSingle()
         for(int i = 0; i < m_spectra[work]->Data()->size(); ++i)
         { 
             double Xi = m_spectra[work]->Data()->X(i);
-            
-            double t_diff_min = qAbs(Xi-m_chartview->XMin());
-            double t_diff_max = qAbs(Xi-m_chartview->XMax());
-            
+
+            double t_diff_min = qAbs(Xi - m_chartview->XMinRange());
+            double t_diff_max = qAbs(Xi - m_chartview->XMaxRange());
+
             if( t_diff_min < diff_min)
                 start = i;
             
@@ -714,9 +724,9 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
                 inrange = true;
 //                 std::cout << "got it ....." << std::endl;
             }
-            double t_diff_min = qAbs(Xi-m_chartview->XMin());
-            double t_diff_max = qAbs(Xi-m_chartview->XMax());
-            
+            double t_diff_min = qAbs(Xi - m_chartview->XMinRange());
+            double t_diff_max = qAbs(Xi - m_chartview->XMaxRange());
+
             if( t_diff_min < diff_min)
                 start = i;
             

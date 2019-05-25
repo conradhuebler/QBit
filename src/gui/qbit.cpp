@@ -124,6 +124,32 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     connect(m_peak_widget, &PeakWidget::PrecisionChanged, m_spec_widget, &MultiSpecWidget::PickPeaks);
     connect(m_spec_widget, &MultiSpecWidget::Message, m_logwidget, &LogWidget::addMessage);
 
+    if (qApp->instance()->property("markerSize") == QVariant())
+        qApp->instance()->setProperty("markerSize", 6);
+
+    if (qApp->instance()->property("lineWidth") == QVariant())
+        qApp->instance()->setProperty("lineWidth", 20);
+
+    if (qApp->instance()->property("chartScaling") == QVariant())
+        qApp->instance()->setProperty("chartScaling", 4);
+
+    if (qApp->instance()->property("transparentChart") == QVariant())
+        qApp->instance()->setProperty("transparentChart", true);
+
+    if (qApp->instance()->property("cropedChart") == QVariant())
+        qApp->instance()->setProperty("cropedChart", true);
+
+    if (qApp->instance()->property("noGrid") == QVariant())
+        qApp->instance()->setProperty("noGrid", true);
+
+    if (qApp->instance()->property("empAxis") == QVariant())
+        qApp->instance()->setProperty("empAxis", true);
+
+    if (qApp->instance()->property("xSize") == QVariant())
+        qApp->instance()->setProperty("xSize", 600);
+
+    if (qApp->instance()->property("ySize") == QVariant())
+        qApp->instance()->setProperty("ySize", 400);
 }
 
 

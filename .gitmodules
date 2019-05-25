@@ -1,6 +1,9 @@
-[submodule "kissfft"]
-	path = kissfft
-	url = https://github.com/bazaar-projects/kissfft
-[submodule "libpeakpick"]
-	path = libpeakpick
+[submodule "external/CuteChart"]
+	path = external/CuteChart
+	url = https://github.com/conradhuebler/CuteChart/
+[submodule "external/libpeakpick"]
+	path = external/libpeakpick
 	url = https://github.com/conradhuebler/libpeakpick
+[submodule "external/kissfft"]
+	path = external/kissfft
+	url = https://github.com/mborgerding/kissfft

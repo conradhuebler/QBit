@@ -17,7 +17,8 @@
  * 
  */
 
-#include "kissfft/kiss_fft.h"
+#include <kiss_fft.h>
+
 #include <complex>
 #include <vector>
 #include <fstream>

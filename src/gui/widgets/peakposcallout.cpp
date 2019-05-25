@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,21 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui/QPainter>
-#include <QtGui/QFontMetrics>
-#include <QtWidgets/QGraphicsSceneMouseEvent>
-#include <QtGui/QMouseEvent>
 #include <QtCharts/QChart>
+#include <QtGui/QFontMetrics>
+#include <QtGui/QMouseEvent>
+#include <QtGui/QPainter>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
 
-#include "peakcallout.h"
+#include "peakposcallout.h"
 
-PeakCallOut::PeakCallOut(QtCharts::QChart *chart):
-    QGraphicsItem(chart),
-    m_chart(chart)
+PeakPosCallOut::PeakPosCallOut(QtCharts::QChart* chart)
+    : QGraphicsItem(chart)
+    , m_chart(chart)
 {
 }
 
-QRectF PeakCallOut::boundingRect() const
+QRectF PeakPosCallOut::boundingRect() const
 {
     QPointF anchor = mapFromParent(m_chart->mapToPosition(m_anchor));
     QRectF rect;
@@ -41,34 +41,33 @@ QRectF PeakCallOut::boundingRect() const
     return rect;
 }
 
-void PeakCallOut::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void PeakPosCallOut::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
     QPainterPath path;
 
-
     QPointF anchor = mapFromParent(m_chart->mapToPosition(m_text_position));
     QPointF peak = mapFromParent(m_chart->mapToPosition(m_anchor));
-       //if (!m_rect.contains(anchor)) {
-           path.moveTo(anchor);
-           path.lineTo(anchor);
-           path.lineTo(peak);
-           path = path.simplified();
-       //}
+    //if (!m_rect.contains(anchor)) {
+    path.moveTo(anchor);
+    path.lineTo(anchor);
+    path.lineTo(peak);
+    path = path.simplified();
+    //}
 
     painter->drawPath(path);
     painter->drawText(anchor, m_text);
 }
 
-void PeakCallOut::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void PeakPosCallOut::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     event->setAccepted(true);
 }
 
-void PeakCallOut::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void PeakPosCallOut::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-    if (event->buttons() & Qt::LeftButton){
+    if (event->buttons() & Qt::LeftButton) {
         setPos(mapToParent(event->pos() - event->buttonDownPos(Qt::LeftButton)));
         event->setAccepted(true);
     } else {
@@ -76,7 +75,7 @@ void PeakCallOut::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-void PeakCallOut::setText(const QString &text, const QPointF &point)
+void PeakPosCallOut::setText(const QString& text, const QPointF& point)
 {
     m_text_position = point;
     m_text = text;
@@ -87,12 +86,12 @@ void PeakCallOut::setText(const QString &text, const QPointF &point)
     setRotation(-90);
 }
 
-void PeakCallOut::setAnchor(QPointF point)
+void PeakPosCallOut::setAnchor(QPointF point)
 {
     m_anchor = point;
 }
 
-void PeakCallOut::updateGeometry()
+void PeakPosCallOut::updateGeometry()
 {
     prepareGeometryChange();
     setPos(m_chart->mapToPosition(m_anchor) + QPoint(10, -50));

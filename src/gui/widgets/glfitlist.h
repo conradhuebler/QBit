@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 #include <QtWidgets/QWidget>
 
-#include <libpeakpick/libpeakpick/deconvulate.h>
+#include <libpeakpick/deconvulate.h>
 
 #include "src/func/fit_threaded.h"
 

@@ -75,11 +75,15 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Charts REQUIRED)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} libpeakpick/)
-include_directories(SYSTEM ${QT_INCLUDES} libpeakpick/eigen/)
+include_directories(${CMAKE_CURRENT_BINARY_DIR} external/libpeakpick/  ${PROJECT_SOURCE_DIR}/external/CuteChart/src/)
+include_directories(SYSTEM ${QT_INCLUDES} external/libpeakpick/eigen/ external/kissfft )
+
+
+# include the charts, which where formerly part of SupraFit
+add_subdirectory(external/CuteChart)
 
 set(qbit_core_SRC
-                kissfft/kiss_fft.c
+                external/kissfft/kiss_fft.c
                 src/core/nmrspec.cpp
                 src/core/filehandler.cpp
                 src/func/fit_threaded.cpp
@@ -92,11 +96,10 @@ qt5_use_modules(qbit_core Core Gui)
 set(qbit_gui 
                 src/gui/dialogs/selectguess.cpp
                 src/gui/dialogs/fitparameter.cpp
-                src/gui/widgets/chartview.cpp
                 src/gui/widgets/multispecwidget.cpp
                 src/gui/widgets/peakwidget.cpp
                 src/gui/widgets/fileswidget.cpp
-                src/gui/widgets/peakcallout.cpp
+                src/gui/widgets/peakposcallout.cpp
                 src/gui/widgets/glfitwidget.cpp
                 src/gui/widgets/glfitlist.cpp
                 src/gui/widgets/logwidget.cpp
@@ -131,7 +134,7 @@ else()
 	message(SEND_ERROR "You are on an unsupported platform! (Not Win32, Mac OS X or Unix)")
 endif(WIN32)
 
-target_link_libraries(QBit qbit_core ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+target_link_libraries(QBit qbit_core cutechart ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
 
 if(UNIX)
     target_link_libraries(QBit pthread dl )

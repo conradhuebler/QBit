@@ -16,38 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 #include <QtCharts/QChartGlobal>
-#include <QtWidgets/QGraphicsItem>
 #include <QtGui/QFont>
+#include <QtWidgets/QGraphicsItem>
 
 class QGraphicsSceneMouseEvent;
 //class QtCharts::QChart;
 
-class PeakCallOut : public QGraphicsItem
-{
+class PeakPosCallOut : public QGraphicsItem {
 public:
+    PeakPosCallOut(QtCharts::QChart* parent);
 
-    PeakCallOut(QtCharts::QChart *parent);
+    void setText(const QString& text, const QPointF& point);
+    void setAnchor(QPointF point);
+    void updateGeometry();
 
-       void setText(const QString &text, const QPointF &point);
-       void setAnchor(QPointF point);
-       void updateGeometry();
+    QRectF boundingRect() const;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
 
-       QRectF boundingRect() const;
-       void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget);
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
 
-   protected:
-       void mousePressEvent(QGraphicsSceneMouseEvent *event);
-       void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-
-   private:
-       QString m_text;
-       QRectF m_textRect;
-       QRectF m_rect;
-       QPointF m_anchor, m_text_position;
-       QFont m_font;
-       QtCharts::QChart *m_chart;
+private:
+    QString m_text;
+    QRectF m_textRect;
+    QRectF m_rect;
+    QPointF m_anchor, m_text_position;
+    QFont m_font;
+    QtCharts::QChart* m_chart;
 };
-
