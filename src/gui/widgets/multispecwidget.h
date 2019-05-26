@@ -42,7 +42,7 @@ class SelectGuess;
 class FitThread;
 class PickThread;
 class GLFit;
-class PeakCallOut;
+class PeakPosCallOut;
 class UpdateThread : public QRunnable
 {
 public:
@@ -156,7 +156,7 @@ private:
     QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit;
     QVector< UpdateThread * > m_data_threads;
 
-    QVector<PeakCallOut * > m_peak_anno;
+    QVector<PeakPosCallOut*> m_peak_anno;
 
     int m_files, m_scale_jobs;
     double m_scale, m_xmin, m_xmax, m_thresh_factor;

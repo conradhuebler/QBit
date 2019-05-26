@@ -305,15 +305,14 @@ void MultiSpecWidget::PickPeaks(int precision)
             */
 
             QPointF point(m_spectra[i]->Raw()->X((peak.max)), i+1); //(m_spectra[i]->Raw()->Y(peak.max)*m_scale*1.1));
-            /*
-            PeakCallOut *annotation = new PeakCallOut(m_chart);
-                    annotation->setText(QString("%1").arg(m_spectra[i]->Raw()->X(peak.max)), point);
-                    annotation->setAnchor(QPointF(m_spectra[i]->Raw()->X(peak.max), i+1)); //(m_spectra[i]->Raw()->Y(peak.max)*m_scale*1.1)));
-                    annotation->setZValue(11);
-                    annotation->updateGeometry();
-                    annotation->show();
+
+            PeakPosCallOut* annotation = new PeakPosCallOut(m_chart);
+            annotation->setText(QString("%1").arg(m_spectra[i]->Raw()->X(peak.max)), point);
+            annotation->setAnchor(QPointF(m_spectra[i]->Raw()->X(peak.max), i + 1)); //(m_spectra[i]->Raw()->Y(peak.max)*m_scale*1.1)));
+            annotation->setZValue(11);
+            annotation->updateGeometry();
+            annotation->show();
             m_peak_anno.append( annotation);
-            */
         }
         m_peaks_list << peaks;
     }
