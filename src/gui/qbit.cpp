@@ -43,36 +43,60 @@
 #include "src/gui/widgets/glfitlist.h"
 #include "src/gui/widgets/logwidget.h"
 
+#include "src/gui/helpers/helpers.h"
+
 #include "qbit.h"
 
 QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this))
 {    
     m_open = new QAction(this);
     m_open->setText( "Open File" );
+    m_open->setIcon(Icon("document-open"));
     connect(m_open, &QAction::triggered, this, static_cast<void(QBit::*)()>(&QBit::LoadFile ));
     
     m_openDir = new QAction(this);
     m_openDir->setText( "Open Dir" );
+    m_openDir->setIcon(Icon("document-open-folder"));
     connect(m_openDir, &QAction::triggered, this, &QBit::LoadDir );
     
     m_load_sev= new QAction(this);
     m_load_sev->setText( "Open Selected" );
+    m_load_sev->setIcon(Icon("document-import"));
     connect(m_load_sev, &QAction::triggered, this, &QBit::LoadSeveral );
     
     m_quit = new QAction(this);
     m_quit->setText( "Quit" );
+    m_quit->setIcon(Icon("application-exit"));
     connect(m_quit, &QAction::triggered, this, &QMainWindow::close );
-   
+
+    /*
+    m_config = new QAction(Icon("configure"), tr("Settings"), this);
+    connect(m_config, SIGNAL(triggered()), this, SLOT(SettingsDialog()));
+    m_config->setShortcut(QKeySequence::Preferences);
+
+    m_about = new QAction(QIcon(":/misc/SupraFit.png"), tr("Info"), this);
+    connect(m_about, SIGNAL(triggered()), this, SLOT(about()));
+
+    m_license = new QAction(Icon("license"), tr("License Info"), this);
+    connect(m_license, SIGNAL(triggered()), this, SLOT(LicenseInfo()));
+    */
+    m_aboutqt = new QAction(Icon("help-about"), tr("About Qt"), this);
+    connect(m_aboutqt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
     m_file = new QToolBar;
     m_file->addAction(m_open);
     m_file->addAction(m_openDir);
-    
+    m_file->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
     m_manipulate = new QToolBar;
     m_manipulate->addAction(m_load_sev);
-    
+    m_manipulate->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
     m_system = new QToolBar;
+    m_system->addAction(m_aboutqt);
     m_system->addAction(m_quit);
-    
+    m_system->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+
     addToolBar(m_file);
     addToolBar(m_manipulate);
     addToolBar(m_system);

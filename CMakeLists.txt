@@ -64,7 +64,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
                                            -Wmissing-include-dirs -Wmissing-noreturn -Wpacked  -Wparentheses\
                                            -Wpointer-arith -Wredundant-decls -Wreturn-type -Wsequence-point\
                                            -Wsign-compare  -Wstack-protector -Wstrict-aliasing\
-                                           -Wstrict-aliasing=2 -Wswitch \
+                                           -Wstrict-aliasing=2 -Wswitch -Wno-error=narrowing\
                                            -Wtrigraphs  -Wuninitialized -Wunknown-pragmas  -Wunreachable-code\
                                            -Wunused -Wunused-function  -Wunused-label  -Wunused-parameter\
                                            -Wunused-value  -Wunused-variable  -Wvariadic-macros\
@@ -105,6 +105,8 @@ set(qbit_gui
                 src/gui/widgets/logwidget.cpp
                 src/gui/qbit.cpp
                 src/main.cpp)
+
+qt5_add_resources(qbit_gui files.qrc)
 
 add_executable(QBit ${qbit_gui})
 qt5_use_modules(QBit Widgets Charts)

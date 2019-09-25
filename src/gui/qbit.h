@@ -61,8 +61,8 @@ private:
     QDockWidget *m_files_dock, *m_peaks_dock, *m_glfitlist_dock, *m_logdock;
 
     QHBoxLayout *m_layout;
-    int m_current_index; 
-    QAction *m_open, *m_openDir, *m_load_sev, *m_quit;
+    int m_current_index;
+    QAction *m_open, *m_openDir, *m_load_sev, *m_quit, *m_config, *m_about, *m_license, *m_aboutqt;
     QToolBar *m_file, *m_manipulate, *m_system;
     
 private slots:

@@ -46,8 +46,7 @@ void FitThread::run()
     }
     m_fit->setGuess(m_guess);
     m_result = Deconvulate(m_fit);
-    for(int i = 0; i < m_result->parameter.size()/6; ++i)
-    {
+    for (int i = 0; i < m_result->parameter.size() / 6 && i < m_peaks.size(); ++i) {
         m_peaks[i]->deconv_x = Parameter()(0+i*6);
         m_peaks[i]->deconv_y = PeakPick::Signal(Parameter()(0+i*6), Parameter());
         Vector vector(6);

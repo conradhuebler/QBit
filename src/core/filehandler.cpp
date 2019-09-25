@@ -61,8 +61,8 @@ SpectrumLoader::SpectrumLoader(const QString &str) : m_filename(str)
 
 bool SpectrumLoader::loadAsciiFile()
 {
-    Vector y;
-    
+    Vector x, y;
+
     QFile file(m_filename);
     if(!file.open(QIODevice::ReadOnly))
     {
@@ -379,7 +379,7 @@ void SpectrumLoader::run()
 
     QFileInfo f(m_filename);
 
-    if (f.baseName().contains("txt") || f.baseName().contains("dat"))
+    if (f.suffix().contains("txt") || f.suffix().contains("dat"))
         m_load = loadAsciiFile();
     else if (f.baseName().contains("jdf"))
         m_load = loadJEOLFile();
