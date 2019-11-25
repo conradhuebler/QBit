@@ -12,10 +12,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       
-    - name: Configure
-      working-directory: build
-      run: cmake  ..
-    - name: Compile
-      working-directory: build
-      run: make
-
+ - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+    - name: build
+      run: cmake --build build
