@@ -154,7 +154,7 @@ bool SpectrumLoader::loadAsciiFile()
 bool SpectrumLoader::loadNMRFile()
 {
 
-    Vector y = BinFile2Vector(m_filename);;
+    Vector y = BinFile2Vector(m_filename);
     if(y.size() == 0)
     {
         qDebug() << m_filename << " is empty?!";
