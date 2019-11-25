@@ -12,7 +12,7 @@ jobs:
       with:
         submodules: true
     - name: Update Modules
-      run: cd external/libpeakpick && git submodule init && git submodule update --recursive
+      run: sh scripts/build_unix.sh 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
     - name: configure
