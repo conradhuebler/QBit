@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      
+    - name: Configure
+      working-directory: build
+      run: cmake  ..
+    - name: Compile
+      working-directory: build
+      run: make
+
