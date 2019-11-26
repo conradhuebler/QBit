@@ -13,7 +13,7 @@ cmake --build . --config Release
 
 echo Packaging...
 cd %project_dir%
-cd build_x64
+cd build_x64\Release
 mkdir QBit
 copy QBit.exe QBit
 cd QBit
