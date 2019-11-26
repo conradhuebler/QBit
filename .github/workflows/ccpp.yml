@@ -35,4 +35,4 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: QBit
-        path: QBit_latest_x64_windows.zip
+        path: Release\QBit_latest_x64_windows.zip
