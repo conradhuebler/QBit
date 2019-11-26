@@ -13,11 +13,9 @@ cmake --build . --config Release
 
 echo Packaging...
 cd %project_dir%
-cd build_x64\bin\win32\Release
+cd build_x64
 mkdir QBit
-copy suprafit.exe QBit
-copy suprafit_cli.exe QBit
-
+copy QBit.exe QBit
 cd QBit
 windeployqt --release QBit.exe
 
