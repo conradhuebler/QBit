@@ -3,7 +3,7 @@ name: C/C++ CI
 on: [push]
 
 jobs:
-  build:
+  linux:
 
     runs-on: ubuntu-latest
     
@@ -15,10 +15,24 @@ jobs:
       uses: jurplel/install-qt-action@v2
     - name: Update Modules and Build
       run: sh scripts/build_unix.sh
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+    - uses: actions/upload-artifact@v1
       with:
-        files: build/QBit
-      env:
-        GITHUB_TOKEN: $
+        name: QBit
+        path: release/QBit
+        
+  windows:
+
+    runs-on: windows-2019
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+    - name: Update Modules and Build
+      run: sh scripts/build_windows.sh
+    - uses: actions/upload-artifact@v1
+      with:
+        name: QBit
+        path: QBit_latest_x64_windows.zip
