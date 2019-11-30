@@ -15,10 +15,6 @@ jobs:
       uses: jurplel/install-qt-action@v2
     - name: Update Modules and Build
       run: sh scripts/build_unix.sh
-    - uses: actions/upload-artifact@v1
-      with:
-        name: QBit
-        path: build/QBit
         
   windows:
 

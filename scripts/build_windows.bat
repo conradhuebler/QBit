@@ -1,7 +1,7 @@
 echo on
 
 SET project_dir="%cd%"
-
+SET VCInstallDir="C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.23.28105/bin/Hostx64/x64/"
 echo Building QBit x64...
 git submodule update --init --recursive
 git pull --recurse-submodules
