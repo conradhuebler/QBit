@@ -1,5 +1,4 @@
-Linux Build via Travis-CI: [![Build Status](https://travis-ci.org/conradhuebler/QBit.svg?branch=master)](https://travis-ci.org/conradhuebler/QBit) Windows Build via Appveyor-CI [![Build status](https://ci.appveyor.com/api/projects/status/lma7hd13mktg6o45?svg=true)](https://ci.appveyor.com/project/conradhuebler/qbit)
-
+Linux and Windows Build: [![Build Status](https://github.com/conradhuebler/QBit/workflows/AutomaticBuild/badge.svg)]
 
 # QBit 
 A Open Source Qt5 based spectra viewing tool (mainly NMR).

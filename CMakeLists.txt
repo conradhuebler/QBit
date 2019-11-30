@@ -119,7 +119,10 @@ if(WIN32) # Check if we are on Windows
 		set_target_properties(QBit PROPERTIES
 			WIN32_EXECUTABLE YES
 			LINK_FLAGS "/ENTRY:mainCRTStartup"
-		)
+                )
+            set_property(TARGET QBit PROPERTY
+              MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 	elseif(CMAKE_COMPILER_IS_GNUCXX)
 			 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mwindows") # Not tested but seems to work
 	else()
