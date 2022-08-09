@@ -1,17 +1,17 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
- * 
+ * Copyright (C) 2017 - 2022 Conrad Hübler <Conrad.Huebler@gmx.net>
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -57,13 +57,15 @@ public:
             TightAdd();
         else
             LooseAdd();
+
+        //        TightAdd();
     }
     
     
     
     inline void setNumber(int number) { m_number = number; }
     inline void setSpectrum(const PeakPick::spectrum *spectrum, const PeakPick::spectrum *raw) { m_spectrum = spectrum; m_raw = raw; }
-    inline void setSeries(QPointer<QtCharts::QLineSeries> series) { m_series = series; }
+    inline void setSeries(QPointer<QLineSeries> series) { m_series = series; }
     inline void setScaling(double scaling) { m_scaling = scaling; }
     inline void setTick(int tick) { m_tick = tick;}
     inline void setRange(double xmin, double xmax) { m_xmin = xmin; m_xmax = xmax; }
@@ -103,9 +105,10 @@ private:
                 continue;
 
             m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
+            // qDebug() << QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number);
         }
     }
-    QPointer<QtCharts::QLineSeries> m_series;
+    QPointer<QLineSeries> m_series;
     const PeakPick::spectrum *m_spectrum, *m_raw;
     int m_tick = 12;
     double m_scaling = 1, m_xmin, m_xmax;
@@ -141,7 +144,7 @@ private:
     QDoubleSpinBox *m_ratio; 
     QCheckBox *m_conservative;
     ChartView *m_chartview;
-    QtCharts::QChart *m_chart;
+    QChart* m_chart;
     QPointer<QThreadPool> m_threads;
     QStringList m_filenames;
 
@@ -153,7 +156,7 @@ private:
     QVector<PickThread * > m_pick_threads;
     QVector< QPointer<FitThread > > m_fit_threads;
     QVector< QPointer<FitThread >  > m_glfits;
-    QVector<QPointer<QtCharts::QLineSeries > > m_spectrum, m_peaks, m_fit;
+    QVector<QPointer<QLineSeries>> m_spectrum, m_peaks, m_fit;
     QVector< UpdateThread * > m_data_threads;
 
     QVector<PeakPosCallOut*> m_peak_anno;

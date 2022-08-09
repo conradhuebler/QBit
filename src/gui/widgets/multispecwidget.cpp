@@ -1,17 +1,17 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
- * 
+ * Copyright (C) 2017 - 2022 Conrad Hübler <Conrad.Huebler@gmx.net>
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -101,7 +101,7 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     connect(m_chartview, SIGNAL(ZoomChanged()), this, SLOT(ResetZoomLevel()));
     connect(m_chartview, SIGNAL(scaleDown()), this, SLOT(scaleDown()));
     connect(m_chartview, SIGNAL(scaleUp()), this, SLOT(scaleUp()));
-    connect(m_chartview, SIGNAL(AddRect(const QPointF &, const QPointF &)), this, SLOT(AddRect(const QPointF &, const QPointF &)));
+    connect(m_chartview, SIGNAL(ZoomRect(const QPointF&, const QPointF&)), this, SLOT(AddRect(const QPointF&, const QPointF&)));
     connect(m_select, &SelectGuess::MinChanged, this, &MultiSpecWidget::MinChanged);
     connect(m_select, &SelectGuess::MaxChanged, this, static_cast<void(MultiSpecWidget::*)(double)>(&MultiSpecWidget::MaxChanged));
     connect(m_select, &SelectGuess::Fit, this, &MultiSpecWidget::FitSingle);
@@ -122,26 +122,33 @@ int MultiSpecWidget::addSpectrum(NMRSpec *spectrum)
     m_xmin = qMin(m_xmin, spectrum->Data()->XMin());
     m_xmax = qMax(m_xmax, spectrum->Data()->XMax());
     qDebug() << m_xmin << m_xmax;
-    QPointer<QtCharts::QLineSeries > spec = new QtCharts::QLineSeries;
+    QPointer<QLineSeries> spec = new QLineSeries;
     spec->setName(spectrum->Name());
     spec->setUseOpenGL(true);
     
     m_spectrum << spec;
-
-    m_chartview->addSeries(spec, true);
-    m_chartview->setXAxis("chemical shift [ppm]");
-    m_chartview->setYAxis("Intensity");
-    
+    /*
+        m_chartview->addSeries(spec, true);
+        m_chartview->setXAxis("chemical shift [ppm]");
+        m_chartview->setYAxis("Intensity");
+      */
     UpdateThread *thread = new UpdateThread;
     thread->setSpectrum( m_spectra[m_spectra.size() - 1]->Data() , m_spectra[m_spectra.size() - 1]->Raw());
     thread->setNumber( m_spectrum.size() - 1 );
     thread->setSeries(  spec );
+    thread->setRange(m_spectra[m_spectra.size() - 1]->Data()->X(0), m_spectra[m_spectra.size() - 1]->Data()->X(m_spectra[m_spectra.size() - 1]->Data()->size() - 2));
     m_data_threads << thread;
-    
+
     m_chartview->addSeries(spec, true);
-    m_chartview->setXAxis("chemical shift [ppm]");
-    m_chartview->setYAxis("Intensity");
-        
+    if (spectrum->isNMR()) {
+        m_chartview->setXAxis("chemical shift [ppm]");
+        m_chartview->setYAxis("Intensity");
+    } else {
+        m_chartview->setXRange(m_spectra[m_spectra.size() - 1]->Data()->X(0), m_spectra[m_spectra.size() - 1]->Data()->X(m_spectra[m_spectra.size() - 1]->Data()->size() - 2), false);
+        m_xmin = m_spectra[m_spectra.size() - 1]->Data()->X(0);
+        m_xmax = m_spectra[m_spectra.size() - 1]->Data()->X(m_spectra[m_spectra.size() - 1]->Data()->size() - 2);
+    }
+
     QPointer<FitThread >fit = new FitThread(spectrum->Name(), m_spectra.size() - 1);
     fit->setData( m_spectra[m_spectra.size() - 1]->Raw() );
     m_fit_threads << fit;
@@ -189,15 +196,14 @@ QRectF MultiSpecWidget::getZoom() const
 void MultiSpecWidget::setZoom(const QRectF &rect)
 {
     m_chartview->setXRange(rect.topLeft().x(), rect.bottomRight().x());
-    // m_chartview->setY(rect.bottomRight().y(), rect.topLeft().y());
-    m_chartview->setYMax(rect.topLeft().y());
+    m_chartview->setYMax(rect.topLeft().y(), false);
     Scale(1);
 }
 
 void MultiSpecWidget::ResetZoomLevel()
 {
     m_chartview->formatAxis();
-    m_chartview->setYMax(m_spectrum.size() + 2);
+    m_chartview->setYMax(m_spectrum.size() + 2, false);
     m_chartview->setXRange(m_xmin, m_xmax);
     UpdateSeries(6);
 }
@@ -215,7 +221,7 @@ void MultiSpecWidget::UpdateSeries(int tick)
     }
     m_threads->waitForDone();
     if(m_first_zoom)
-        m_chartview->setYMax(m_spectrum.size() + 2);
+        m_chartview->setYMax(m_spectrum.size() + 2, false);
     else
         m_first_zoom = true;
 
@@ -493,8 +499,8 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
             peaklist += QString::number(parameter(0+i*6)) + " ";
         last_row += peaklist + "\n";
         result += threads[work]->toHtml() + "<br \>";
-        
-        QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
+
+        QLineSeries* series = new QLineSeries;
 
         for (int i = start; i <= end; i += diff) {
             double x = threads[work]->Data()->X(i);
@@ -509,7 +515,7 @@ Vector MultiSpecWidget::AnalyseFitThreads(const QVector<QPointer< FitThread > > 
 
         for(int i = 0; i < parameter.size()/6; ++i)
         {
-            series = new QtCharts::QLineSeries;
+            series = new QLineSeries;
             for (int j = start; j <= end; j += diff) {
                 double x = threads[work]->Data()->X(j);
                 double y = PeakPick::SignalSingle(x, parameter, i)*m_scale;
@@ -563,7 +569,7 @@ void MultiSpecWidget::PlotFit()
     for(int i = 0; i <  guess; ++i)
         peaklist += QString::number(parameter(0+i*6)) + " ";
 
-    QtCharts::QLineSeries *series = new QtCharts::QLineSeries;
+    QLineSeries* series = new QLineSeries;
 
     for(int i = start; i <= end; ++i)
     {
@@ -579,7 +585,7 @@ void MultiSpecWidget::PlotFit()
 
     for(int i = 0; i < parameter.size()/6; ++i)
     {
-        series = new QtCharts::QLineSeries;
+        series = new QLineSeries;
         for(int j = start; j <= end; ++j)
         {
             double x = thread->Data()->X(j);
@@ -804,24 +810,21 @@ void MultiSpecWidget::MaxChanged(double val)
 
 void MultiSpecWidget::UpdatePeaks(double factor)
 {
-    for(QPointer<QtCharts::QLineSeries > series : m_peaks)
-    {
-        QVector<QPointF> points = series->pointsVector();
+    for (QPointer<QLineSeries> series : m_peaks) {
+        QVector<QPointF> points = series->points();
         for(int i = 0; i < series->count(); ++i)
         {
             series->replace(i, points[i].x(),points[i].y()*factor );
         }
     }
-    
-    for(QPointer<QtCharts::QLineSeries > series : m_fit)
-    {
-        QVector<QPointF> points = series->pointsVector();
+
+    for (QPointer<QLineSeries> series : m_fit) {
+        QVector<QPointF> points = series->points();
         for(int i = 0; i < series->count(); ++i)
         {
             series->replace(i, points[i].x(),points[i].y()*factor );
         }
     }
-    
 }
 
 #include "multispecwidget.moc"

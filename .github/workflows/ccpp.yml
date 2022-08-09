@@ -1,34 +1,136 @@
-name: AutomaticBuild
+name: Build
 
-on: [push]
+on:
+  push:
+    branches: [ master ] #Everytime master branch is updated
+      # paths: ['.github/workflows/*',  'src/*'] #only when these files are modifed
+  pull_request:
+    branches: [ master ] #for every pull request going to master
+      # paths: ['.github/workflows/*', 'src/*'] #only when these files are modifed
 
 jobs:
-  linux:
 
+  makerelease:
     runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.create_release.outputs.upload_url }}
+      version: 0.1.${{ github.run_number  }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: 0.1.${{ github.run_number  }}
+          release_name: QBit 0.1.${{ github.run_number }}
+          draft: false
+          prerelease: true
+      - name: Clear older release
+        id: clear_releases
+        uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+         # repo: c/<repoName> # defaults to current repo
+         keep_latest: 5
+         delete_tag_pattern: 0.1 # defaults to ""
+        env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+  linux:
+    needs: [makerelease]
+    runs-on: ubuntu-20.04
     
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2
-    - name: Update Modules and Build
-      run: sh scripts/build_unix.sh
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          modules: 'addons.qtcharts'
+          version: 6.3.*
+
+      - name: Update Modules and Build
+        run: sh scripts/build_unix_github.sh
+
+      - name: Install more libs
+        run: sudo apt-get install -y libxcb-icccm4 libxcb*
+
+      - name: Deploy
+        run: sh scripts/deploy_unix_dir.sh 
+      
+      - name: Upload Linux
+        id: upload-release-asset-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.makerelease.outputs.url }}
+          asset_path: ./release/QBit.tar.gz
+          asset_name: QBit-nightly-${{ needs.makerelease.outputs.version }}-x86_64-Linux.tar.gz
+          asset_content_type: application/zip
+
         
   windows:
-
+    needs: [makerelease]
     runs-on: windows-2019
     
     steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v2
-    - name: Update Modules and Build
-      run: scripts/build_windows.bat
-    - uses: actions/upload-artifact@v1
-      with:
-        name: QBit
-        path: build_x64\Release\QBit_latest_x64_windows.zip
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+          
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v2
+        with:
+            platform: x64
+    
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          modules: 'addons.qtcharts'
+          version: 6.3.*
+          arch: 'win64_mingw81'
+          
+      - name: Update Modules and Build
+        run: scripts/build_windows.bat
+        
+      - name: Upload Windows
+        id: upload-release-asset-windows
+        uses: actions/upload-release-asset@v1
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+           upload_url: ${{ needs.makerelease.outputs.url }}
+           asset_path: build_x64\QBit.zip
+           asset_name: QBit-nightly-${{ needs.makerelease.outputs.version }}-x86_x64-Windows.zip
+           asset_content_type: application/zip
+
+  macOS:
+    needs: [makerelease]
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+          
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+           modules: 'addons.qtcharts'
+           version: 6.3.*
+
+      - name: Update Modules and Build
+        run: sh scripts/build_macOS_github.sh
+        
+      - name: Upload macOS
+        id: upload-release-asset-macOS
+        uses: actions/upload-release-asset@v1
+        env:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+           upload_url: ${{ needs.makerelease.outputs.url }}
+           asset_path: ./release/QBit.dmg
+           asset_name: QBit-nightly-${{ needs.makerelease.outputs.version }}-macOS.dmg
+           asset_content_type: application/x-apple-diskimage

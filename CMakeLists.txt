@@ -1,11 +1,29 @@
-cmake_minimum_required(VERSION 3.1)
-project(QBit)
+cmake_minimum_required(VERSION 3.21)
+project(QBit
+    VERSION 0.0.1
+    LANGUAGES CXX)
 
-# Tell CMake to run moc when necessary:
-set(CMAKE_AUTOMOC ON)
 # As moc files are generated in the binary dir, tell CMake
 # to always look for includes there:
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Tell CMake to run moc when necessary:
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+
+
+find_package(Qt6 6.1 REQUIRED COMPONENTS Core Widgets Charts)
+#qt_standard_project_setup()
+
+include_directories(SYSTEM ${QT_INCLUDES} external/libpeakpick/eigen/ external/kissfft )
+include_directories(${CMAKE_CURRENT_BINARY_DIR} external/libpeakpick/  ${PROJECT_SOURCE_DIR}/external/CuteChart/src/)
+
+
 
 # Get the current working branch
 execute_process(
@@ -72,13 +90,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
                                            -Wno-error=unused-local-typedefs -Wno-error=enum-compare")                                        
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Charts REQUIRED)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR} external/libpeakpick/  ${PROJECT_SOURCE_DIR}/external/CuteChart/src/)
-include_directories(SYSTEM ${QT_INCLUDES} external/libpeakpick/eigen/ external/kissfft )
-
-
 # include the charts, which where formerly part of SupraFit
 add_subdirectory(external/CuteChart)
 
@@ -91,7 +102,9 @@ set(qbit_core_SRC
 )
 
 add_library(qbit_core STATIC ${qbit_core_SRC})
-qt5_use_modules(qbit_core Core Gui)
+target_link_libraries(qbit_core Qt::Core)
+
+#qt5_use_modules(qbit_core Core Gui)
 
 set(qbit_gui 
                 src/gui/dialogs/selectguess.cpp
@@ -106,13 +119,13 @@ set(qbit_gui
                 src/gui/qbit.cpp
                 src/main.cpp)
 
-qt5_add_resources(qbit_gui files.qrc)
+qt_add_resources(qbit_gui files.qrc)
 
 add_executable(QBit ${qbit_gui})
-qt5_use_modules(QBit Widgets Charts)
+#qt5_use_modules(QBit Widgets Charts)
+set_property(TARGET QBit PROPERTY CXX_STANDARD 17)
 
-set_property(TARGET QBit PROPERTY CXX_STANDARD 14)
-
+#
 # generate proper GUI program on specified platform
 if(WIN32) # Check if we are on Windows
 	if(MSVC) # Check if we are using the Visual Studio compiler
@@ -139,7 +152,7 @@ else()
 	message(SEND_ERROR "You are on an unsupported platform! (Not Win32, Mac OS X or Unix)")
 endif(WIN32)
 
-target_link_libraries(QBit qbit_core cutechart ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+target_link_libraries(QBit qbit_core cutechart Qt::Core Qt::Gui)
 
 if(UNIX)
     target_link_libraries(QBit pthread dl )

@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2017  Conrad Hübler <Conrad.Huebler@gmx.net>
+ * Copyright (C) 2017 - 2022 Conrad Hübler <Conrad.Huebler@gmx.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,9 @@
  */
 
 #pragma once
+
 #include <QtCharts/QChartGlobal>
+
 #include <QtGui/QFont>
 #include <QtWidgets/QGraphicsItem>
 
@@ -26,7 +28,7 @@ class QGraphicsSceneMouseEvent;
 
 class PeakPosCallOut : public QGraphicsItem {
 public:
-    PeakPosCallOut(QtCharts::QChart* parent);
+    PeakPosCallOut(QChart* parent);
 
     void setText(const QString& text, const QPointF& point);
     void setAnchor(QPointF point);
@@ -45,5 +47,5 @@ private:
     QRectF m_rect;
     QPointF m_anchor, m_text_position;
     QFont m_font;
-    QtCharts::QChart* m_chart;
+    QChart* m_chart;
 };

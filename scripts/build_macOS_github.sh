@@ -1,9 +1,6 @@
-
 #!/bin/bash
 set -ex
 
-export CXX="g++-9"
-export CC="gcc-9"
 git submodule init
 git submodule update --recursive
 # check submodules, seems not to work automatically
@@ -14,6 +11,7 @@ cd ..
 
 mkdir -p release
 cd release
-
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make 
+#cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -Dnoto_font=true -D_Theme=false -DCMAKE_PREFIX_PATH=$HOME/SupraFit/Qt/5.15.1/gcc_64 ..
+cmake -DCMAKE_BUILD_TYPE=Release -Dnoto_font=true -D_Theme=false  ..
+make
+macdeployqt  qbit.app -dmg

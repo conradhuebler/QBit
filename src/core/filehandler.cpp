@@ -1,20 +1,20 @@
 /*
  * <fileHandler loads files.>
- * Copyright (C) 2017 - 2019 Conrad Hübler <Conrad.Huebler@gmx.net>
- * 
+ * Copyright (C) 2017 - 2022 Conrad Hübler <Conrad.Huebler@gmx.net>
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 
 #include <kiss_fft.h>
@@ -75,8 +75,7 @@ bool SpectrumLoader::loadAsciiFile()
     double max = 0;
     int i = 1;
     int number = 0;
-    bool nmr = false;
-    std::vector<double> entries;
+    std::vector<double> e_x, e_y;
 
     if (!filecontent.size())
         return false;
@@ -102,11 +101,11 @@ bool SpectrumLoader::loadAsciiFile()
             } else {
                 QStringList items = str.split("\t");
                 if (items.size() == 2) {
-                    entries.push_back(items[1].toDouble());
+                    e_y.push_back(items[1].toDouble());
                 }
             }
         }
-        number = entries.size();
+        number = e_y.size();
     } else {
 
         for (const QString& str : filecontent) {
@@ -116,7 +115,7 @@ bool SpectrumLoader::loadAsciiFile()
                 QStringList items = str.split(" ");
                 min = items[3].toDouble();
                 max = items[6].toDouble();
-                nmr = true;
+                m_nmr = true;
             }
             if (str.contains("SIZE")) {
                 QStringList items = str.split(" ");
@@ -124,17 +123,18 @@ bool SpectrumLoader::loadAsciiFile()
             }
             if (!str.contains("#")) {
                 i++;
-                if (nmr)
-                    entries.push_back(str.toDouble());
+                if (m_nmr)
+                    e_y.push_back(str.toDouble());
                 else {
-                    QStringList list = QString(str).split("\t");
+                    QStringList list = QString(str).simplified().split(" ");
                     if (list.size() < 2)
                         continue;
-                    QLocale local;
-                    entries.push_back(local.toDouble(list[1]));
-                    max = local.toDouble(list[0]);
+                    double tmp = list[0].toDouble();
+                    e_x.push_back(tmp);
+                    e_y.push_back(list[1].toDouble());
+                    max = tmp;
                     if (i == 1)
-                        min = local.toDouble(list[0]);
+                        min = tmp;
                 }
             }
         }
@@ -143,11 +143,16 @@ bool SpectrumLoader::loadAsciiFile()
       max = i;
       number = i;
     }
-    if (!entries.size())
+    if (!e_y.size())
         return false;
+    y = Vector::Map(&e_y[0], number);
 
-    y = Vector::Map(&entries[0], number); 
-    original = PeakPick::spectrum(y,-1*min,max); 
+    if (e_x.size() != e_y.size()) {
+        original = PeakPick::spectrum(y, -1 * min, max);
+    } else {
+        x = Vector::Map(&e_x[0], number);
+        original = PeakPick::spectrum(x, y);
+    }
     return true;
 }
 
@@ -228,10 +233,12 @@ bool SpectrumLoader::loadJEOLFile()
 
 bool SpectrumLoader::loadFidFile()
 {
+    return false;
+    /*
     Vector y = BinFile2Vector(m_filename);
     if(y.size() == 0)
         return false;
-    
+
     const int nfft=y.size();
     const int fill = 2;
 
@@ -270,44 +277,45 @@ bool SpectrumLoader::loadFidFile()
          float re = fx1[k].real();
          raw_spec.push_back( re );
     }
-    
+
     kiss_fft_free(fwd1);
     kiss_fft_free(fwd2);
     // kiss_fft_free(inv);
-    
-    
+
+    */
     /*
      * All of this is ugly, only time will tell, how to do this physically correct
      */
+    /*
+        Vector spec = Vector::Map(&raw_spec[0], nfft*fill/2);
+        const QString SW_h = "##$SW_h=";
+        const QString TD = "##$TD=";
+        const QString O1 = "##$O1=";
 
-    Vector spec = Vector::Map(&raw_spec[0], nfft*fill/2);
-    const QString SW_h = "##$SW_h=";
-    const QString TD = "##$TD=";
-    const QString O1 = "##$O1=";
-
-    QFile peakrng( m_path + QDir::separator() + "acqus");
-    double sw_h = 15.0;
-    double td = -0;
-    double o1 = 0;
-    if(peakrng.open(QIODevice::ReadOnly))
-    {
-        QString range = peakrng.readAll();
-        QStringList lines = range.split("\n");
-        for(QString &str : lines)
+        QFile peakrng( m_path + QDir::separator() + "acqus");
+        double sw_h = 15.0;
+        double td = -0;
+        double o1 = 0;
+        if(peakrng.open(QIODevice::ReadOnly))
         {
-            if(str.contains(SW_h))
-                sw_h = str.remove((SW_h)).toDouble();
-            if(str.contains(TD))
-                td =str.remove(TD).toDouble();
-            if(str.contains(O1))
-                o1 =str.remove(O1).toDouble();
+            QString range = peakrng.readAll();
+            QStringList lines = range.split("\n");
+            for(QString &str : lines)
+            {
+                if(str.contains(SW_h))
+                    sw_h = str.remove((SW_h)).toDouble();
+                if(str.contains(TD))
+                    td =str.remove(TD).toDouble();
+                if(str.contains(O1))
+                    o1 =str.remove(O1).toDouble();
+            }
         }
-    }
-    original = PeakPick::spectrum(spec, -1*(sw_h+o1/2.0)/1E3,-2*(o1-sw_h/2.0)/1E3);
-    QStringList path_list  = m_path.split("/");
-    
-    m_basename = path_list[path_list.size() - 2];
-    return true;
+        original = PeakPick::spectrum(spec, -1*(sw_h+o1/2.0)/1E3,-2*(o1-sw_h/2.0)/1E3);
+        QStringList path_list  = m_path.split("/");
+
+        m_basename = path_list[path_list.size() - 2];
+        return true;
+        */
 }
 
 Vector SpectrumLoader::BinFile2Vector(const QString& filename)
@@ -381,13 +389,16 @@ void SpectrumLoader::run()
 
     if (f.suffix().contains("txt") || f.suffix().contains("dat"))
         m_load = loadAsciiFile();
-    else if (f.baseName().contains("jdf"))
+    else if (f.baseName().contains("jdf")) {
         m_load = loadJEOLFile();
-    else if (f.baseName().contains("1r"))
+        m_nmr = true;
+    } else if (f.baseName().contains("1r")) {
         m_load = loadNMRFile();
-    else if (f.baseName().contains("fid"))
+        m_nmr = true;
+    } else if (f.baseName().contains("fid")) {
         m_load = loadFidFile();
-    else if (f.baseName().contains("dpt"))
+        m_nmr = true;
+    } else if (f.baseName().contains("dpt"))
         m_load = loadDptFile();
     else if (f.baseName().contains("SPA"))
         m_load = loadFidFile();
@@ -428,7 +439,9 @@ int fileHandler::addFile(const QString& filename)
     loader->run();
     if(!loader->Loaded())
         return -1;
-    m_spectra.append( new NMRSpec(loader->Spectrum()) );
+    NMRSpec* spec = new NMRSpec(loader->Spectrum());
+    spec->setNMR(m_nmr);
+    m_spectra.append(spec);
     emit SpectrumAdded(m_spectra.size() - 1);
     delete loader;
     emit Finished();
@@ -450,7 +463,9 @@ void fileHandler::addFiles(const QStringList& filenames)
     {
         if(!loader[i]->Loaded())
             continue;
-        m_spectra.append( new NMRSpec(loader[i]->Spectrum()) );
+        NMRSpec* spec = new NMRSpec(loader[i]->Spectrum());
+        spec->setNMR(m_nmr);
+        m_spectra.append(spec);
         emit SpectrumAdded(m_spectra.size() - 1);
         
     }
