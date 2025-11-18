@@ -24,6 +24,8 @@
 #include <QtCore/QMap>
 #include <QtCore/QRunnable>
 #include <QtCore/QVector>
+#include <QtCore/QHash>
+#include <QtCore/QQueue>
 
 #include <libpeakpick/spectrum.h>
 
@@ -62,24 +64,39 @@ private:
 class fileHandler : public QObject
 {
     Q_OBJECT
-    
+
 public:
     fileHandler();
     ~fileHandler();
-    
+
     int addFile(const QString &filename);
     void addFiles(const QStringList &filenames);
     int addDirectory(const QString &dirname);
     void addDirectories(const QString &dirnames);
-    
+
     NMRSpec * Spectrum(int i) { return m_spectra[i]; }
 //     QVector< NMRSpec *> SpectraList() { return m_work_spectra.toVector(); }
-    
-private:  
+
+    // Cache management
+    void clearCache();
+    void setCacheSize(int size);
+    int cacheSize() const { return m_cacheMaxSize; }
+    int cachedCount() const { return m_cache.size(); }
+
+private:
+    NMRSpec* getCached(const QString &filepath);
+    void insertCache(const QString &filepath, NMRSpec* spec);
+    void evictLRU();
+
     QStringList m_filelist;
     QStringList m_dirlist;
     QVector<NMRSpec *> m_spectra;
     bool m_nmr = false;
+
+    // Spectrum cache (OPT-4)
+    QHash<QString, NMRSpec*> m_cache;
+    QQueue<QString> m_cacheAccessOrder;
+    int m_cacheMaxSize = 50;
 
 signals:
     void Finished();

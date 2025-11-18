@@ -429,11 +429,25 @@ fileHandler::fileHandler()
 fileHandler::~fileHandler()
 {
     qDeleteAll(m_spectra);
+    clearCache();
 }
 
 
 int fileHandler::addFile(const QString& filename)
 {
+    // Check cache first (OPT-4)
+    NMRSpec* cachedSpec = getCached(filename);
+    if (cachedSpec) {
+        // Create a copy from cache for m_spectra
+        NMRSpec* spec = new NMRSpec(cachedSpec);
+        spec->setNMR(m_nmr);
+        m_spectra.append(spec);
+        emit SpectrumAdded(m_spectra.size() - 1);
+        emit Finished();
+        return m_spectra.size() - 1;
+    }
+
+    // Cache miss - load from disk
     SpectrumLoader * loader = new SpectrumLoader(filename);;
     loader->run();
     if(!loader->Loaded())
@@ -441,6 +455,10 @@ int fileHandler::addFile(const QString& filename)
     NMRSpec* spec = new NMRSpec(loader->Spectrum());
     spec->setNMR(m_nmr);
     m_spectra.append(spec);
+
+    // Insert into cache
+    insertCache(filename, spec);
+
     emit SpectrumAdded(m_spectra.size() - 1);
     delete loader;
     emit Finished();
@@ -450,25 +468,50 @@ int fileHandler::addFile(const QString& filename)
 void fileHandler::addFiles(const QStringList& filenames)
 {
     QVector<SpectrumLoader *> loader;
+    QStringList filesToLoad;
+
+    // First pass: check cache and add cached spectra (OPT-4)
     for(const QString &str : filenames)
     {
-        SpectrumLoader *load = new SpectrumLoader(str);
-        loader << load;
-        QThreadPool::globalInstance()->start(load);  
+        NMRSpec* cachedSpec = getCached(str);
+        if (cachedSpec) {
+            // Use cached spectrum
+            NMRSpec* spec = new NMRSpec(cachedSpec);
+            spec->setNMR(m_nmr);
+            m_spectra.append(spec);
+            emit SpectrumAdded(m_spectra.size() - 1);
+        } else {
+            // Not in cache, need to load from disk
+            filesToLoad << str;
+        }
     }
-    
-    QThreadPool::globalInstance()->waitForDone();
-    for(int i = 0; i < loader.size(); ++i)
-    {
-        if(!loader[i]->Loaded())
-            continue;
-        NMRSpec* spec = new NMRSpec(loader[i]->Spectrum());
-        spec->setNMR(m_nmr);
-        m_spectra.append(spec);
-        emit SpectrumAdded(m_spectra.size() - 1);
-        
+
+    // Second pass: load uncached files in parallel
+    if (!filesToLoad.isEmpty()) {
+        for(const QString &str : filesToLoad)
+        {
+            SpectrumLoader *load = new SpectrumLoader(str);
+            loader << load;
+            QThreadPool::globalInstance()->start(load);
+        }
+
+        QThreadPool::globalInstance()->waitForDone();
+        for(int i = 0; i < loader.size(); ++i)
+        {
+            if(!loader[i]->Loaded())
+                continue;
+            NMRSpec* spec = new NMRSpec(loader[i]->Spectrum());
+            spec->setNMR(m_nmr);
+            m_spectra.append(spec);
+
+            // Insert into cache
+            insertCache(loader[i]->FullName(), spec);
+
+            emit SpectrumAdded(m_spectra.size() - 1);
+        }
+        qDeleteAll(loader);
     }
-    qDeleteAll(loader);
+
     emit Finished();
 }
 
@@ -477,44 +520,144 @@ int fileHandler::addDirectory(const QString& dirname)
 {
     QStringList files;
     findRecursion(dirname, &files);
-        
-    
-    
-        QCollator collator;
-        collator.setNumericMode(true);
-        std::sort(
-            files.begin(),
-                  files.end(),
-                  [&collator](const QString &key1, const QString &key2)
-                  {
-                      return collator.compare(key1, key2) < 0;
-                  });
-    
-    QVector<SpectrumLoader *> loader;
 
+    QCollator collator;
+    collator.setNumericMode(true);
+    std::sort(
+        files.begin(),
+        files.end(),
+        [&collator](const QString &key1, const QString &key2)
+        {
+            return collator.compare(key1, key2) < 0;
+        });
+
+    QVector<SpectrumLoader *> loader;
+    QStringList filesToLoad;
+    int count = 0;
+
+    // First pass: check cache and add cached spectra (OPT-4)
     for(const QString &str : files)
     {
-        SpectrumLoader * load = new SpectrumLoader(str);;
-        loader << load;
-        QThreadPool::globalInstance()->start(load);  
-    }    
-    
-    QThreadPool::globalInstance()->waitForDone();
-    int count = 0;
-    for(int i = 0; i < loader.size(); ++i)
-    {
-        if(!loader[i]->Loaded())
-            continue;
-        count++;
-        m_spectra.append( new NMRSpec(loader[i]->Spectrum()) );
-        emit FileAdded(m_spectra.size() - 1);
-        
+        NMRSpec* cachedSpec = getCached(str);
+        if (cachedSpec) {
+            // Use cached spectrum
+            NMRSpec* spec = new NMRSpec(cachedSpec);
+            m_spectra.append(spec);
+            emit FileAdded(m_spectra.size() - 1);
+            count++;
+        } else {
+            // Not in cache, need to load from disk
+            filesToLoad << str;
+        }
     }
-    qDeleteAll(loader);
+
+    // Second pass: load uncached files in parallel
+    if (!filesToLoad.isEmpty()) {
+        for(const QString &str : filesToLoad)
+        {
+            SpectrumLoader * load = new SpectrumLoader(str);;
+            loader << load;
+            QThreadPool::globalInstance()->start(load);
+        }
+
+        QThreadPool::globalInstance()->waitForDone();
+        for(int i = 0; i < loader.size(); ++i)
+        {
+            if(!loader[i]->Loaded())
+                continue;
+            count++;
+            NMRSpec* spec = new NMRSpec(loader[i]->Spectrum());
+            m_spectra.append(spec);
+
+            // Insert into cache
+            insertCache(loader[i]->FullName(), spec);
+
+            emit FileAdded(m_spectra.size() - 1);
+        }
+        qDeleteAll(loader);
+    }
+
     return count;
 }
 
 void fileHandler::addDirectories(const QString& dirnames)
 {
-    
+
+}
+
+// ============================================================================
+// Spectrum Cache Implementation (OPT-4)
+// ============================================================================
+
+NMRSpec* fileHandler::getCached(const QString &filepath)
+{
+    if (!m_cache.contains(filepath))
+        return nullptr;
+
+    // Move to end of access order (most recently used)
+    m_cacheAccessOrder.removeOne(filepath);
+    m_cacheAccessOrder.enqueue(filepath);
+
+    qDebug() << "Cache HIT:" << filepath;
+    return m_cache.value(filepath);
+}
+
+void fileHandler::insertCache(const QString &filepath, NMRSpec* spec)
+{
+    if (m_cacheMaxSize <= 0)
+        return;  // Caching disabled
+
+    // If already in cache, update access order
+    if (m_cache.contains(filepath)) {
+        m_cacheAccessOrder.removeOne(filepath);
+        m_cacheAccessOrder.enqueue(filepath);
+        return;
+    }
+
+    // Evict if cache is full
+    if (m_cache.size() >= m_cacheMaxSize)
+        evictLRU();
+
+    // Create a copy for the cache (not owned by m_spectra)
+    NMRSpec* cachedSpec = new NMRSpec(spec);
+    m_cache.insert(filepath, cachedSpec);
+    m_cacheAccessOrder.enqueue(filepath);
+
+    qDebug() << "Cache INSERT:" << filepath << "(" << m_cache.size() << "/" << m_cacheMaxSize << ")";
+}
+
+void fileHandler::evictLRU()
+{
+    if (m_cacheAccessOrder.isEmpty())
+        return;
+
+    // Remove least recently used (front of queue)
+    QString lruPath = m_cacheAccessOrder.dequeue();
+    NMRSpec* spec = m_cache.take(lruPath);
+
+    if (spec) {
+        qDebug() << "Cache EVICT:" << lruPath;
+        delete spec;
+    }
+}
+
+void fileHandler::clearCache()
+{
+    qDebug() << "Clearing cache:" << m_cache.size() << "entries";
+
+    // Delete all cached spectra
+    qDeleteAll(m_cache);
+    m_cache.clear();
+    m_cacheAccessOrder.clear();
+}
+
+void fileHandler::setCacheSize(int size)
+{
+    m_cacheMaxSize = qMax(0, size);  // Minimum 0 (disabled)
+
+    // Evict excess entries if new size is smaller
+    while (m_cache.size() > m_cacheMaxSize && m_cacheMaxSize > 0)
+        evictLRU();
+
+    qDebug() << "Cache size set to:" << m_cacheMaxSize;
 }

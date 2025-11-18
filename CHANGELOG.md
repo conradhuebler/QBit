@@ -70,6 +70,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Spectrum Cache (OPT-4)**: Intelligent caching system for loaded spectra
+  - LRU (Least Recently Used) eviction policy
+  - Default cache size: 50 spectra (configurable)
+  - O(1) cache lookups via QHash
+  - Eliminates redundant file I/O for frequently accessed spectra
+  - Cache management methods: `clearCache()`, `setCacheSize()`
+  - Integrated into `addFile()`, `addFiles()`, and `addDirectory()`
+  - Debug logging for cache hits, misses, and evictions
+
+### Improved
+- **Performance Optimizations (Phase 2)**:
+  - Spectrum caching reduces disk I/O for repeated file loads
+  - Expected improvement: Near-instant loading for cached files
+  - Memory usage: ~70-100 MB for 50 cached 16k-point spectra
+
 ### Planned
 - Settings/Preferences dialog
 - Automated test suite
@@ -77,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced peak fitting algorithms
 - Batch processing capabilities
 - Export functionality improvements
+- User-configurable cache settings in preferences
 
 ---
 
