@@ -105,7 +105,6 @@ private:
                 continue;
 
             m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
-            // qDebug() << QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number);
         }
     }
     QPointer<QLineSeries> m_series;

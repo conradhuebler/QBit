@@ -199,42 +199,16 @@ bool SpectrumLoader::loadNMRFile()
 
 bool SpectrumLoader::loadJEOLFile()
 {
-    int  intNum   = 0;
-    std::cout << "starting with jeol file " << std::endl;
-    std::vector<double> entries;
-    Vector y;
-    std::ifstream file_i (m_filename.toStdString(), std::ios::binary);
-    if(file_i.is_open())
-    {
-        int number = 0;
-        while(true)
-        {
-            char *_char = new char[sizeof(intNum)];
-            file_i.read(_char,sizeof(intNum));   
-            std::cout << std::string(_char) << std::endl;
-            
-            
-            if(file_i.eof()) {
-                break;
-            }
-//             entries.push_back(intNum);
-//             number++;
-        }
-//         y = Vector::Map(&entries[0], number);
-        file_i.close ();
-    }
-    
-    
-//     original = PeakPick::spectrum(y,-15,0); 
-    
-    return true;
-    
+    // JEOL file format is not currently supported
+    // This format requires vendor-specific binary parsing
+    // If you need JEOL support, please open an issue on GitHub
+    qWarning() << "JEOL file format is not supported:" << m_filename;
+    qWarning() << "Supported formats: Bruker 1r, TopSpin ASCII, ACDLabs ASCII, DPT CSV";
+    return false;
 }
 
 bool SpectrumLoader::loadFidFile()
 {
-    return false;
-    /*
     Vector y = BinFile2Vector(m_filename);
     if(y.size() == 0)
         return false;
@@ -244,7 +218,6 @@ bool SpectrumLoader::loadFidFile()
 
     kiss_fft_cfg fwd1 = kiss_fft_alloc(nfft*fill,0,NULL,NULL);
     kiss_fft_cfg fwd2 = kiss_fft_alloc(nfft*fill,0,NULL,NULL);
-    // kiss_fft_cfg inv = kiss_fft_alloc(nfft/2,1,NULL,NULL);
 
     std::vector<std::complex<float>> x1(nfft*fill, 0.0);
     std::vector<std::complex<float>> x2(nfft*fill, 0.0);
@@ -252,70 +225,63 @@ bool SpectrumLoader::loadFidFile()
     std::vector<std::complex<float>> fx1(nfft*fill, 0.0);
     std::vector<std::complex<float>> fx2(nfft*fill, 0.0);
 
-    double size = y.size();
     for(int i = 0; i < y.size()/2; i = i + 1)
     {
-
         x1[i] = y(i);
-        // x1[y.size()/2 + i - 1] = 0;
-        // x1[y.size() + i - 1] = 0;
-
         x2[i] = y(y.size()/2  + i - 1);
-        // x2[y.size()/2 + i - 1] = 0;
-        // x2[y.size() + i - 1] = 0;
     }
+
     kiss_fft(fwd1,(kiss_fft_cpx*)&x1[0],(kiss_fft_cpx*)&fx1[0]);
     kiss_fft(fwd2,(kiss_fft_cpx*)&x2[0],(kiss_fft_cpx*)&fx2[0]);
-    std::cout << " fourier transform finished ... " << std::endl;
-    std::vector<double > raw_spec;
 
-    //for (int k=0;k<nfft/2 - 2;k += 2)
-    //for (int k=nfft*fill/2.0;k < nfft*fill ;++k)
+    std::vector<double> raw_spec;
     for(int k = 0; k < nfft*fill/2; ++k)
     {
-         // float re = fx1[k].real();
          float re = fx1[k].real();
          raw_spec.push_back( re );
     }
 
     kiss_fft_free(fwd1);
     kiss_fft_free(fwd2);
-    // kiss_fft_free(inv);
 
-    */
-    /*
-     * All of this is ugly, only time will tell, how to do this physically correct
-     */
-    /*
-        Vector spec = Vector::Map(&raw_spec[0], nfft*fill/2);
-        const QString SW_h = "##$SW_h=";
-        const QString TD = "##$TD=";
-        const QString O1 = "##$O1=";
+    // Create spectrum from FFT result
+    Vector spec = Vector::Map(&raw_spec[0], nfft*fill/2);
 
-        QFile peakrng( m_path + QDir::separator() + "acqus");
-        double sw_h = 15.0;
-        double td = -0;
-        double o1 = 0;
-        if(peakrng.open(QIODevice::ReadOnly))
+    // Read acquisition parameters from Bruker acqus file
+    const QString SW_h = "##$SW_h=";
+    const QString TD = "##$TD=";
+    const QString O1 = "##$O1=";
+
+    QFile peakrng( m_path + QDir::separator() + "acqus");
+    double sw_h = 15.0;
+    double td = 0;
+    double o1 = 0;
+
+    if(peakrng.open(QIODevice::ReadOnly))
+    {
+        QString range = peakrng.readAll();
+        QStringList lines = range.split("\n");
+        for(QString &str : lines)
         {
-            QString range = peakrng.readAll();
-            QStringList lines = range.split("\n");
-            for(QString &str : lines)
-            {
-                if(str.contains(SW_h))
-                    sw_h = str.remove((SW_h)).toDouble();
-                if(str.contains(TD))
-                    td =str.remove(TD).toDouble();
-                if(str.contains(O1))
-                    o1 =str.remove(O1).toDouble();
-            }
+            if(str.contains(SW_h))
+                sw_h = str.remove((SW_h)).toDouble();
+            if(str.contains(TD))
+                td = str.remove(TD).toDouble();
+            if(str.contains(O1))
+                o1 = str.remove(O1).toDouble();
         }
-        original = PeakPick::spectrum(spec, -1*(sw_h+o1/2.0)/1E3,-2*(o1-sw_h/2.0)/1E3);
-        QStringList path_list  = m_path.split("/");
+        peakrng.close();
+    }
+    else
+    {
+        qWarning() << "Could not open acqus file for FID parameters";
+    }
 
-        m_basename = path_list[path_list.size() - 2];
-        return true;
-        */
+    original = PeakPick::spectrum(spec, -1*(sw_h+o1/2.0)/1E3, -2*(o1-sw_h/2.0)/1E3);
+    QStringList path_list = m_path.split("/");
+
+    m_basename = path_list[path_list.size() - 2];
+    return true;
 }
 
 Vector SpectrumLoader::BinFile2Vector(const QString& filename)

@@ -63,11 +63,15 @@ int main(int argc, char** argv)
     app.setApplicationName("QBit");
     app.setApplicationDisplayName("QBit");
     app.setOrganizationName("Conrad Huebler");
-    
-//     app.setApplicationVersion(version);
-    
+
+#ifdef QBIT_VERSION
+    app.setApplicationVersion(QBIT_VERSION);
+#else
+    app.setApplicationVersion("0.1.0");
+#endif
+
     QCommandLineParser parser;
-    parser.setApplicationDescription ( "A Open Source Qt5 based NMR Spectra Software, based on libpeakpick." );
+    parser.setApplicationDescription ( "An Open Source Qt6 based NMR Spectra Software, based on libpeakpick." );
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument("input file", QCoreApplication::translate("main", "File to open."));

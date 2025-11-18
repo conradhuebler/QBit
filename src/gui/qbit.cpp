@@ -44,6 +44,9 @@
 #include "src/gui/widgets/glfitlist.h"
 #include "src/gui/widgets/logwidget.h"
 
+#include "src/gui/dialogs/aboutdialog.h"
+#include "src/gui/dialogs/licensedialog.h"
+
 #include "src/gui/helpers/helpers.h"
 
 #include "qbit.h"
@@ -70,17 +73,12 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     m_quit->setIcon(Icon("application-exit"));
     connect(m_quit, &QAction::triggered, this, &QMainWindow::close );
 
-    /*
-    m_config = new QAction(Icon("configure"), tr("Settings"), this);
-    connect(m_config, SIGNAL(triggered()), this, SLOT(SettingsDialog()));
-    m_config->setShortcut(QKeySequence::Preferences);
-
-    m_about = new QAction(QIcon(":/misc/SupraFit.png"), tr("Info"), this);
-    connect(m_about, SIGNAL(triggered()), this, SLOT(about()));
+    m_about = new QAction(Icon("help-about"), tr("About QBit"), this);
+    connect(m_about, &QAction::triggered, this, &QBit::showAbout);
 
     m_license = new QAction(Icon("license"), tr("License Info"), this);
-    connect(m_license, SIGNAL(triggered()), this, SLOT(LicenseInfo()));
-    */
+    connect(m_license, &QAction::triggered, this, &QBit::showLicense);
+
     m_aboutqt = new QAction(Icon("help-about"), tr("About Qt"), this);
     connect(m_aboutqt, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
@@ -94,6 +92,8 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     m_manipulate->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
     m_system = new QToolBar;
+    m_system->addAction(m_about);
+    m_system->addAction(m_license);
     m_system->addAction(m_aboutqt);
     m_system->addAction(m_quit);
     m_system->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -103,7 +103,6 @@ QBit::QBit():  m_files(new fileHandler), m_spec_widget(new MultiSpecWidget(this)
     addToolBar(m_system);
 
     m_files_widget = new FilesWidget;
-    //m_files_widget->setMaximumWidth(200);
 
     m_peak_widget = new PeakWidget;
 
@@ -294,6 +293,18 @@ void QBit::PeakPicked()
 {
     m_peak_widget->setPeaks(m_spec_widget->PeakList());
     m_peak_widget->setManualPeaks(m_spec_widget->ManualPeakList());
+}
+
+void QBit::showAbout()
+{
+    AboutDialog dialog(this);
+    dialog.exec();
+}
+
+void QBit::showLicense()
+{
+    LicenseDialog dialog(this);
+    dialog.exec();
 }
 
 #include "qbit.moc"

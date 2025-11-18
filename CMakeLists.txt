@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 project(QBit
-    VERSION 0.0.1
+    VERSION 0.1.0
     LANGUAGES CXX)
 
 # As moc files are generated in the binary dir, tell CMake
@@ -51,6 +51,10 @@ execute_process(
 add_definitions("-DGIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
 add_definitions("-DGIT_BRANCH=${GIT_BRANCH}")
 add_definitions("-DGIT_COMMIT_DATE=${GIT_COMMIT_DATE}")
+add_definitions("-DQBIT_VERSION=\"${PROJECT_VERSION}\"")
+add_definitions("-DQBIT_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}")
+add_definitions("-DQBIT_VERSION_MINOR=${PROJECT_VERSION_MINOR}")
+add_definitions("-DQBIT_VERSION_PATCH=${PROJECT_VERSION_PATCH}")
 
 
 # configure_file (
@@ -106,9 +110,11 @@ target_link_libraries(qbit_core Qt::Core)
 
 #qt5_use_modules(qbit_core Core Gui)
 
-set(qbit_gui 
+set(qbit_gui
                 src/gui/dialogs/selectguess.cpp
                 src/gui/dialogs/fitparameter.cpp
+                src/gui/dialogs/aboutdialog.cpp
+                src/gui/dialogs/licensedialog.cpp
                 src/gui/widgets/multispecwidget.cpp
                 src/gui/widgets/peakwidget.cpp
                 src/gui/widgets/fileswidget.cpp

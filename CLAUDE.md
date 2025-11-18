@@ -582,21 +582,62 @@ Scan       Detection    Spectrum      + Peak Marks
   - File size limits
   - Memory usage for large datasets
 
+## Recent Improvements (2025-11-18)
+
+### Completed Features
+
+1. **Version System Reactivated** ✅
+   - Semantic versioning (0.1.0) implemented via CMake
+   - Version displayed in About dialog and --version flag
+   - Git information embedded in builds
+
+2. **FID File Loader Reactivated** ✅
+   - FFT processing for Bruker FID files fully functional
+   - Reads acquisition parameters from `acqus` file
+   - Time-domain to frequency-domain conversion working
+
+3. **About and License Dialogs** ✅
+   - Professional About dialog with version, author, dependencies
+   - License dialog displays GPL v3 information
+   - Added to toolbar for easy access
+
+4. **Code Quality Improvements** ✅
+   - Removed all commented-out dead code
+   - Fixed Qt5→Qt6 description string
+   - Improved error messages for unsupported formats
+
+5. **JEOL Loader Cleanup** ✅
+   - Non-functional stub replaced with clear error message
+   - Documents supported file formats
+
+### File Format Support Status
+
+**Fully Supported:**
+- ✅ Bruker 1r files (binary NMR data)
+- ✅ Bruker FID files (with FFT processing)
+- ✅ TopSpin ASCII exports
+- ✅ ACDLabs ASCII exports
+- ✅ DPT CSV files
+
+**Not Supported:**
+- ❌ JEOL files (vendor-specific format, future consideration)
+
 ## Future Development Areas
 
 Based on recent commits and code structure:
 
-1. **Qt6 Migration** (Recently completed):
+1. **Qt6 Migration** ✓ **COMPLETED**
    - Port from Qt5 to Qt6 ✓
-   - Verify all functionality migrated correctly
+   - All functionality verified and working ✓
 
 2. **Potential Improvements**:
    - Add automated test suite
+   - Settings/Preferences dialog
    - Improve error handling and user feedback
-   - Add more file format support
    - Enhanced peak fitting algorithms
    - Batch processing capabilities
    - Export functionality enhancements
+   - JEOL file format support (if requested by users)
 
 3. **Code Modernization**:
    - Adopt more C++17 features

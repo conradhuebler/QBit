@@ -74,4 +74,6 @@ private slots:
     void LoadItem(const QListWidgetItem * item);
     void LoadSeveral();
     void PeakPicked();
+    void showAbout();
+    void showLicense();
 };

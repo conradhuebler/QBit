@@ -53,7 +53,6 @@ MultiSpecWidget::MultiSpecWidget(QWidget *parent ) : QWidget(parent), m_files(0)
     m_chart = m_chartview->Chart();
     m_chart->legend()->setVisible(true);
     m_chart->legend()->setAlignment(Qt::AlignTop);
-    //m_chart->setAnimationOptions(QtCharts::QChart::SeriesAnimations);
 
     QGridLayout *layout = new QGridLayout;
     
@@ -400,9 +399,6 @@ void MultiSpecWidget::Deconvulate()
         QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     m_threads->waitForDone();
     Vector parameter = AnalyseFitThreads(threads);
-    //for(int i = 0; i < index_peak; ++i)
-    //    m_peak_list[index_peak[i]] = parameter(0+i*6);
-    //qDeleteAll(threads);
     emit DeconvulationFinished();
 }
 
@@ -473,11 +469,7 @@ void MultiSpecWidget::SingleDeconvulate()
     }
     while(m_threads->activeThreadCount())
         QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
-    //m_threads->waitForDone();
     Vector parameter = AnalyseFitThreads(threads);
-    //for(int i = 0; i < index_peak; ++i)
-    //    m_peak_list[index_peak[i]] = parameter(0+i*6);
-    //qDeleteAll(threads);
     emit DeconvulationFinished();
 }
 
@@ -720,16 +712,13 @@ void MultiSpecWidget::AddRect(const QPointF &point1, const QPointF &point2)
     for (work = 0; work < m_spectra.size(); ++work) {
         for (unsigned int i = 0; i < m_spectra[work]->Data()->size(); ++i) {
             double Xi = m_spectra[work]->Data()->X(i);
-            //     qDebug() << i << Xi << x_min << x_max;
             if(Xi < x_min || Xi > x_max)
                 continue;
             double Yi = m_spectra[work]->Raw()->Y(i);
-            
-//             std::cout << Xi << ": " << y_min << " " << Yi*m_scale+work << " " <<  y_max << std::endl;
+
             if(Yi*m_scale+work > y_min && Yi*m_scale+work < y_max)
             {
                 inrange = true;
-//                 std::cout << "got it ....." << std::endl;
             }
             double t_diff_min = qAbs(Xi - m_chartview->XMinRange());
             double t_diff_max = qAbs(Xi - m_chartview->XMaxRange());
