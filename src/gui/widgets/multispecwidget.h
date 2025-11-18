@@ -73,38 +73,37 @@ public:
 private:
     inline void LooseAdd()
     {
-        int crude = 0;
-        int tight = 0;
-        int count = 0;
-        
-         for(int i = 0; i < m_spectrum->size(); i += m_tick)  
+        const int stride = qMax(1, m_tick);
+        const double threshold = m_spectrum->StdDev() * 0.02;  // Pre-calculate threshold
+        const bool useRaw = (qAbs(m_xmax - m_xmin) < 2.0);
+
+        for(int i = 0; i < m_spectrum->size(); i += stride)
         {
-            if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
+            const double x = m_spectrum->X(i);
+            if(x < m_xmin || x > m_xmax)
                 continue;
 
-            if (m_spectrum->Y(i) * m_scaling * 50 > m_spectrum->StdDev() || crude == 36 || tight == 18 || i == 0) {
-                if(qAbs(m_xmax -m_xmin) < 2)
-                    m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
-                else
-                    m_series->append(QPointF(m_spectrum->X(i), (m_spectrum->Y(i)*m_scaling) + m_number));
-                if (crude == 36)
-                    crude = 0;
-                if (tight == 18)
-                    tight = 0;
+            const double y = m_spectrum->Y(i);
+            // Simplified: keep significant points or every 50th point
+            if (qAbs(y * m_scaling) > threshold || (i % 50) == 0)
+            {
+                const double displayY = useRaw ? m_raw->Y(i) : y;
+                m_series->append(QPointF(x, displayY * m_scaling + m_number));
             }
-            count++;
-            tight++;
-            crude++;
         }
     }
     inline void TightAdd()
     {
-        int stepsize = 5;
-        for (int i = 0; i < m_spectrum->size(); i += stepsize) {
-            if(m_spectrum->X(i) < m_xmin || m_spectrum->X(i) > m_xmax)
+        const int stepsize = 5;
+        const int size = m_spectrum->size();
+
+        for (int i = 0; i < size; i += stepsize) {
+            const double x = m_spectrum->X(i);
+            if(x < m_xmin || x > m_xmax)
                 continue;
 
-            m_series->append(QPointF(m_spectrum->X(i), (m_raw->Y(i)*m_scaling) + m_number));
+            const double y = m_raw->Y(i);
+            m_series->append(QPointF(x, y * m_scaling + m_number));
         }
     }
     QPointer<QLineSeries> m_series;

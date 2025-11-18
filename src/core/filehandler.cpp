@@ -76,6 +76,8 @@ bool SpectrumLoader::loadAsciiFile()
     int i = 1;
     int number = 0;
     std::vector<double> e_x, e_y;
+    e_x.reserve(filecontent.size());  // Reserve based on file lines
+    e_y.reserve(filecontent.size());
 
     if (!filecontent.size())
         return false;
@@ -179,13 +181,13 @@ bool SpectrumLoader::loadNMRFile()
     double max = 0;
     QString range = peakrng.readAll();
     QStringList lines = range.split("\n");
-    QString prev;
-    for(QString &str : lines)
+    for(const QString &str : lines)  // const ref to avoid copy
     {
-        if(str.contains(high_field))
-            min = str.remove((high_field)).toDouble();
-        if(str.contains(low_field))
-            max =str.remove(low_field).toDouble();
+        // Use startsWith + midRef to avoid string modifications
+        if(str.startsWith(high_field))
+            min = str.midRef(high_field.length()).toDouble();
+        else if(str.startsWith(low_field))
+            max = str.midRef(low_field.length()).toDouble();
     }
     
     original = PeakPick::spectrum(y,-1*min,-1*max); 
@@ -272,14 +274,15 @@ bool SpectrumLoader::loadFidFile()
     {
         QString range = peakrng.readAll();
         QStringList lines = range.split("\n");
-        for(QString &str : lines)
+        for(const QString &str : lines)  // const ref to avoid copy
         {
-            if(str.contains(SW_h))
-                sw_h = str.remove((SW_h)).toDouble();
-            if(str.contains(TD))
-                td = str.remove(TD).toDouble();
-            if(str.contains(O1))
-                o1 = str.remove(O1).toDouble();
+            // Use startsWith + midRef to avoid string modifications
+            if(str.startsWith(SW_h))
+                sw_h = str.midRef(SW_h.length()).toDouble();
+            else if(str.startsWith(TD))
+                td = str.midRef(TD.length()).toDouble();
+            else if(str.startsWith(O1))
+                o1 = str.midRef(O1.length()).toDouble();
         }
         peakrng.close();
     }
@@ -299,6 +302,7 @@ Vector SpectrumLoader::BinFile2Vector(const QString& filename)
 {
     int  intNum   = 0;
     std::vector<double> entries;
+    entries.reserve(65536);  // Reserve 64k elements (typical NMR size)
     Vector y;
 
     std::ifstream file_i (filename.toStdString(), std::ios::binary);
@@ -339,19 +343,21 @@ Vector SpectrumLoader::BinFile2Vector(const QString& filename)
 bool SpectrumLoader::loadDptFile()
 {
     Vector y;
-    
+
     QFile file(m_filename);
     if(!file.open(QIODevice::ReadOnly))
     {
         qDebug() << file.errorString();
-        return false; 
+        return false;
     }
-    
+
     QStringList filecontent = QString(file.readAll()).split("\n");
     double min = 0;
     double max = 0;
     int i = 1;
     std::vector<double> tmp_entries, entries;
+    tmp_entries.reserve(filecontent.size());  // Reserve based on file lines
+    entries.reserve(filecontent.size());
     
     for(const QString &str : filecontent)
     {
