@@ -211,13 +211,24 @@ bool SpectrumLoader::loadFidFile()
 {
     Vector y = BinFile2Vector(m_filename);
     if(y.size() == 0)
+    {
+        qWarning() << "Failed to read FID data from" << m_filename;
         return false;
+    }
 
     const int nfft=y.size();
     const int fill = 2;
 
     kiss_fft_cfg fwd1 = kiss_fft_alloc(nfft*fill,0,NULL,NULL);
     kiss_fft_cfg fwd2 = kiss_fft_alloc(nfft*fill,0,NULL,NULL);
+
+    if(!fwd1 || !fwd2)
+    {
+        qWarning() << "Failed to allocate FFT buffers for FID processing";
+        if(fwd1) kiss_fft_free(fwd1);
+        if(fwd2) kiss_fft_free(fwd2);
+        return false;
+    }
 
     std::vector<std::complex<float>> x1(nfft*fill, 0.0);
     std::vector<std::complex<float>> x2(nfft*fill, 0.0);
@@ -289,23 +300,39 @@ Vector SpectrumLoader::BinFile2Vector(const QString& filename)
     int  intNum   = 0;
     std::vector<double> entries;
     Vector y;
+
     std::ifstream file_i (filename.toStdString(), std::ios::binary);
-    if(file_i.is_open())
+    if(!file_i.is_open())
     {
-        int number = 0;
-        while(true)
-        {
-            file_i.read(reinterpret_cast<char *>(&intNum),sizeof(intNum));   
-            
-            if(file_i.eof()) {
-                break;
-            }
-            entries.push_back(intNum);
-            number++;
-        }
-        y = Vector::Map(&entries[0], number);
-        file_i.close ();
+        qWarning() << "Failed to open binary file:" << filename;
+        return y;  // Return empty vector
     }
+
+    int number = 0;
+    while(true)
+    {
+        file_i.read(reinterpret_cast<char *>(&intNum), sizeof(intNum));
+
+        if(file_i.eof()) {
+            break;
+        }
+
+        if(file_i.fail()) {
+            qWarning() << "Error reading binary file:" << filename;
+            break;
+        }
+
+        entries.push_back(intNum);
+        number++;
+    }
+
+    if(number > 0) {
+        y = Vector::Map(&entries[0], number);
+    } else {
+        qWarning() << "No data read from binary file:" << filename;
+    }
+
+    file_i.close();
     return y;
 }
 
